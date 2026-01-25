@@ -1,0 +1,13 @@
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-img {
+  width: 140px;
+  height: auto;
+  background: transparent;
+  user-select: none;
+  pointer-events: none;
+}
