@@ -1,28 +1,31 @@
-// src/pages/Login.tsx
-
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import "./Auth.css";
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { supabase } from "../lib/supabase"
+import "./Auth.css"
 
 export default function Login(): JSX.Element {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) {
-      alert(error.message);
-      return;
+      if (error) throw error
+
+      navigate("/dashboard")
+    } catch (error: any) {
+      alert(error.message)
+    } finally {
+      setLoading(false)
     }
-
-    navigate("/dashboard"); // change later if needed
-  };
+  }
 
   return (
     <div className="auth-page">
@@ -41,10 +44,7 @@ export default function Login(): JSX.Element {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <div className="auth-row">
-          <label className="auth-label">Password</label>
-          <span className="auth-link">Forgot your password?</span>
-        </div>
+        <label className="auth-label">Password</label>
         <input
           type="password"
           className="auth-input"
@@ -52,8 +52,8 @@ export default function Login(): JSX.Element {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button onClick={handleLogin} className="auth-btn primary">
-          Login
+        <button onClick={handleLogin} className="auth-btn primary" disabled={loading}>
+          {loading ? "Loading..." : "Login"}
         </button>
 
         <button className="auth-btn outline" disabled>
@@ -68,5 +68,5 @@ export default function Login(): JSX.Element {
         </p>
       </div>
     </div>
-  );
+  )
 }

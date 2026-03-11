@@ -9,6 +9,9 @@ export default function Signup(): JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<'client' | 'freelancer'>("freelancer");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async () => {
@@ -17,17 +20,28 @@ export default function Signup(): JSX.Element {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: role,
+          },
+        },
+      });
 
-    if (error) {
+      if (error) throw error;
+
+      alert("Signup successful! Please log in.");
+      navigate("/");
+    } catch (error: any) {
       alert(error.message);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    navigate("/");
   };
 
   return (
@@ -37,6 +51,25 @@ export default function Signup(): JSX.Element {
         <p className="auth-subtitle">
           Enter your details below to create a WORKSY account
         </p>
+
+        <label className="auth-label">Full Name</label>
+        <input
+          type="text"
+          placeholder="John Doe"
+          className="auth-input"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
+
+        <label className="auth-label">Role</label>
+        <select
+          className="auth-input"
+          value={role}
+          onChange={(e) => setRole(e.target.value as 'client' | 'freelancer')}
+        >
+          <option value="freelancer">Freelancer</option>
+          <option value="client">Client</option>
+        </select>
 
         <label className="auth-label">Email</label>
         <input
@@ -63,8 +96,8 @@ export default function Signup(): JSX.Element {
           onChange={(e) => setConfirm(e.target.value)}
         />
 
-        <button onClick={handleSignup} className="auth-btn primary">
-          Create account
+        <button onClick={handleSignup} className="auth-btn primary" disabled={loading}>
+          {loading ? "Creating..." : "Create account"}
         </button>
 
         <button className="auth-btn outline" disabled>

@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import "./Navbar.css";
 
 export default function DashboardNavbar(): JSX.Element {
@@ -5,7 +6,7 @@ export default function DashboardNavbar(): JSX.Element {
     <nav className="dash-nav">
       {/* Left */}
       <div className="dash-nav-left">
-        <span className="dash-brand">WORKSY</span>
+        <span className="dash-brand"></span>
       </div>
 
       {/* Center */}
