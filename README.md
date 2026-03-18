@@ -1,103 +1,69 @@
-# Worksy
+## 🛠️ Tech Stack
 
-Worksy is a freelance software project bidding and management platform.
+### 🎨 Frontend
+- React (Vite)
+- React Router
+- Axios
+- Tailwind CSS (custom theme based on Worksy design system)
 
-## Implemented Scope
+---
 
-Completed through **Phase 2**:
+### ⚙️ Backend
+- Node.js
+- Express.js
+- JSON Web Tokens (JWT) for session management
+- CORS
+- dotenv
 
-- Phase 1: Landing page, auth, role-aware protected routes, reusable UI system
-- Phase 2: Client dashboard project posting, freelancer marketplace browsing, project detail, bidding, and freelancer assignment
+---
 
-Phase 3+ is intentionally not started.
+### 🗄️ Database & Authentication
+- Supabase (PostgreSQL)
+- Supabase Auth (Email/Password)
+- Supabase JavaScript Client
 
-## Stack
+---
 
-- Frontend: React, Vite, Tailwind CSS v4, React Router, Axios
-- Backend: Node.js, Express.js
-- Database: Supabase PostgreSQL
-- Auth: JWT
+## 🧠 Architecture Overview
 
-## Theme System
+Worksy follows a **hybrid architecture**:
 
-Color variables:
+### 1. Authentication (Supabase Auth)
+- Users sign up / login via Supabase Auth
+- Supabase returns a JWT session
+- Backend verifies the token for protected routes
 
-- --primary-green: #0E3B2E
-- --dark-green: #0B3A2B
-- --accent-yellow: #FFD400
-- --bg-light: #F5F5F3
-- --card-bg: #ECECEC
-- --text-dark: #1A1A1A
-- --text-muted: #6B6B6B
+---
 
-Typography:
+### 2. Database (Supabase PostgreSQL)
+- All application data stored in PostgreSQL
+- Accessed via:
+  - Supabase client (optional)
+  - OR backend queries (recommended)
 
-- Headings: Bebas Neue
-- Body: Inter
+---
 
-## Project Structure
+### 3. Backend (Express API Layer)
+- Handles:
+  - business logic
+  - validation
+  - authorization
+- Acts as a secure layer between frontend and database
 
-- client/
-- server/
+---
 
-## Environment
+### 4. Frontend (React + Vite)
+- Handles UI and user interaction
+- Calls backend APIs via Axios
+- Maintains session using JWT
 
-### Frontend (client/.env)
+---
 
-- VITE_API_URL=http://localhost:5000/api
-- VITE_SUPABASE_URL=...
-- VITE_SUPABASE_ANON_KEY=...
+## 🔐 Auth Flow (Important)
 
-### Backend (server/.env)
+1. User logs in via Supabase Auth
+2. Supabase returns access token
+3. Frontend stores token
+4. Token is sent in headers:
 
-- PORT=5000
-- SUPABASE_URL=...
-- SUPABASE_ANON_KEY=...
-- JWT_SECRET=...
-- JWT_EXPIRES_IN=7d
-
-## Database Setup
-
-Run SQL in Supabase SQL editor:
-
-- server/config/schema.sql
-
-If you use an existing schema with RLS enabled and hit policy errors like
-"new row violates row-level security policy for table profiles", run:
-
-- server/config/supabase_rls_dev.sql
-
-## Start
-
-### Backend
-
-1. cd server
-2. npm install
-3. npm run dev
-
-### Frontend
-
-1. cd client
-2. npm install
-3. npm run dev
-
-## API Endpoints (Phase 1 + 2)
-
-Auth:
-
-- POST /api/auth/register
-- POST /api/auth/login
-
-Projects:
-
-- POST /api/projects
-- GET /api/projects
-- GET /api/projects/:id
-- GET /api/projects/mine
-- PATCH /api/projects/:id
-
-Bids:
-
-- POST /api/bids
-- GET /api/projects/:id/bids
-- PATCH /api/bids/:id/accept
+```
