@@ -12,9 +12,22 @@ export default function Dashboard(): JSX.Element {
   const [activeJobsCount, setActiveJobsCount] = useState(0)
   const [proposalsCount, setProposalsCount] = useState(0)
 
+  // New states for Todos and Notes
+  const [todos, setTodos] = useState<any[]>([])
+  const [newTodo, setNewTodo] = useState("")
+  const [notes, setNotes] = useState<any[]>([])
+  const [newNote, setNewNote] = useState("")
+
   useEffect(() => {
     fetchProfile()
   }, [])
+
+  useEffect(() => {
+    if (profile) {
+      fetchTodos(profile.id)
+      fetchNotes(profile.id)
+    }
+  }, [profile])
 
   const fetchProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -45,6 +58,65 @@ export default function Dashboard(): JSX.Element {
     } else {
       const { count } = await supabase.from('proposals').select('*', { count: 'exact', head: true }).eq('freelancer_id', userId)
       setProposalsCount(count || 0)
+    }
+  }
+
+  // --- Fetch Data ---
+  const fetchTodos = async (userId: string) => {
+    const { data } = await supabase
+      .from('todos')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    if (data) setTodos(data)
+  }
+
+  const fetchNotes = async (userId: string) => {
+    const { data } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+    if (data) setNotes(data)
+  }
+
+  // --- Submit Data ---
+  const handleAddTodo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newTodo.trim() || !profile) return
+
+    const { error } = await supabase
+      .from('todos')
+      .insert([{ user_id: profile.id, task: newTodo }])
+
+    if (!error) {
+      setNewTodo("")
+      fetchTodos(profile.id)
+    }
+  }
+
+  const handleToggleTodo = async (todoId: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from('todos')
+      .update({ is_completed: !currentStatus })
+      .eq('id', todoId)
+    
+    if (!error && profile) {
+      fetchTodos(profile.id)
+    }
+  }
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newNote.trim() || !profile) return
+
+    const { error } = await supabase
+      .from('notes')
+      .insert([{ user_id: profile.id, content: newNote }])
+
+    if (!error) {
+      setNewNote("")
+      fetchNotes(profile.id)
     }
   }
 
@@ -95,7 +167,64 @@ export default function Dashboard(): JSX.Element {
 
         <div className="dash-grid">
 
-          {/* Main List Area - Removed */}
+          {/* Main List Area - Todos & Notes */}
+          <div className="dash-main-content">
+            
+            {/* Todos Section */}
+            <div className="dash-card">
+              <h3>My Todos</h3>
+              <form onSubmit={handleAddTodo} className="input-form">
+                <input 
+                  type="text" 
+                  placeholder="What needs to be done?" 
+                  value={newTodo}
+                  onChange={(e) => setNewTodo(e.target.value)}
+                  className="dash-input"
+                />
+                <button type="submit" className="dash-submit-btn">Add</button>
+              </form>
+              <ul className="todo-list">
+                {todos.map(todo => (
+                  <li key={todo.id} className="todo-item">
+                    <label>
+                      <input 
+                        type="checkbox" 
+                        checked={todo.is_completed}
+                        onChange={() => handleToggleTodo(todo.id, todo.is_completed)}
+                      />
+                      <span className={todo.is_completed ? 'completed' : ''}>{todo.task}</span>
+                    </label>
+                  </li>
+                ))}
+                {todos.length === 0 && <li className="empty-state">No todos yet.</li>}
+              </ul>
+            </div>
+
+            {/* Notes Section */}
+            <div className="dash-card" style={{ marginTop: '24px' }}>
+              <h3>Quick Notes</h3>
+              <form onSubmit={handleAddNote} className="input-form">
+                <textarea 
+                  placeholder="Jot down a quick note..." 
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="dash-textarea"
+                  rows={3}
+                />
+                <button type="submit" className="dash-submit-btn">Save Note</button>
+              </form>
+              <div className="notes-list">
+                {notes.map(note => (
+                  <div key={note.id} className="note-card">
+                    <p>{note.content}</p>
+                    <small>{new Date(note.created_at).toLocaleDateString()}</small>
+                  </div>
+                ))}
+                {notes.length === 0 && <p className="empty-state">No notes yet.</p>}
+              </div>
+            </div>
+
+          </div>
 
           {/* Sidebar */}
           <div className="dash-sidebar">

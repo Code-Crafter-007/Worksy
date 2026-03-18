@@ -23,6 +23,5 @@
   .content {
     position: relative;
     z-index: 1;
-    pointer-events: none;
-
+    /* Removed pointer-events: none so inputs/buttons work */
   }
