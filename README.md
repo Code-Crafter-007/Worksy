@@ -64,6 +64,4 @@ Worksy follows a **hybrid architecture**:
 1. User logs in via Supabase Auth
 2. Supabase returns access token
 3. Frontend stores token
-4. Token is sent in headers:
-
 ```
