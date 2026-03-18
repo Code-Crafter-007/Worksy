@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --primary-green: #0e3b2e;
+  --dark-green: #0b3a2b;
+  --accent-yellow: #ffd400;
+  --bg-light: #f5f5f3;
+  --card-bg: #ececec;
+  --text-dark: #1a1a1a;
+  --text-muted: #6b6b6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at 80% 0%, #dfe7e3 0%, var(--bg-light) 40%);
+  color: var(--text-dark);
+}
+
+.worksy-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.worksy-hero {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.01em;
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.worksy-section {
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+
+.worksy-kicker {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.worksy-title {
+  margin: 10px 0 0;
+  color: var(--primary-green);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 0.94;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+.worksy-card {
+  border-radius: 1.2rem;
+  border: 1px solid rgba(14, 59, 46, 0.1);
+  background: var(--card-bg);
+  padding: 24px;
+  box-shadow: 0 14px 34px rgba(11, 58, 43, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.worksy-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 40px rgba(11, 58, 43, 0.12);
+}
+
+.worksy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(11, 58, 43, 0.2);
+  background: var(--accent-yellow);
+  color: var(--dark-green);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  padding: 12px 20px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.worksy-btn:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 10px 20px rgba(11, 58, 43, 0.18);
+}
+
+.worksy-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(11, 58, 43, 0.22);
+  color: var(--primary-green);
+  font-weight: 700;
+  padding: 12px 20px;
+  text-decoration: none;
+}
+
+.worksy-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--dark-green);
+}
+
+.worksy-input {
+  width: 100%;
+  border: 1px solid rgba(11, 58, 43, 0.18);
+  background: #fdfdfc;
+  border-radius: 0.8rem;
+  padding: 12px 14px;
+  font: inherit;
+  color: var(--text-dark);
+}
+
+.worksy-input:focus {
+  outline: 2px solid rgba(255, 212, 0, 0.7);
+  border-color: rgba(11, 58, 43, 0.45);
+}
+
+.hero-shell {
+  position: relative;
+}
+
+.hero-shell::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(11, 58, 43, 0.22), transparent);
+}
+
+.hero-visual {
+  position: relative;
+  min-height: 360px;
+}
+
+.hero-image-card {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 14px;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(11, 58, 43, 0.16);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(238, 242, 239, 0.92));
+  box-shadow: 0 20px 42px rgba(11, 58, 43, 0.14);
+  padding: 14px;
+  transform: rotate(-1.4deg);
+}
+
+.hero-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.9rem;
+}
+
+.hero-badge {
+  position: absolute;
+  top: 0;
+  right: 16px;
+  border-radius: 9999px;
+  background: var(--accent-yellow);
+  color: var(--dark-green);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  padding: 10px 14px;
+}
+
+.hero-panel {
+  position: absolute;
+  top: 58px;
+  left: 0;
+  right: 40px;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(11, 58, 43, 0.14);
+  background: linear-gradient(155deg, rgba(236, 236, 236, 0.93), rgba(245, 245, 243, 0.96));
+  padding: 30px;
+  transform: rotate(-2deg);
+}
+
+.hero-panel p {
+  margin: 0;
+  color: var(--primary-green);
+  font-size: 2.4rem;
+  line-height: 0.92;
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+.hero-panel ul {
+  margin: 18px 0 0;
+  padding-left: 16px;
+  color: var(--text-muted);
+  display: grid;
+  gap: 8px;
+}
+
+.dark-panel {
+  background: linear-gradient(150deg, #0b3a2b, #0e4a37);
+}
+
+@media (max-width: 767px) {
+  .hero-visual {
+    min-height: 280px;
+  }
+
+  .hero-image-card {
+    right: 0;
+    transform: rotate(0deg);
+  }
+
+  .hero-panel {
+    right: 0;
+    padding: 22px;
+    transform: rotate(0deg);
+  }
+}
