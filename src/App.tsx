@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Particles from "./Components/Particles";
+import InteractiveBackground from "./Components/InteractiveBackground";
 import Login from "./Pages/Login";
 import Signup from "./Pages/Signup";
 import Header from "./Components/Header";
@@ -10,11 +10,13 @@ import Dashboard from "./Pages/Dashboard";
 import FindWork from "./Pages/FindWork";
 import MyProposals from "./Pages/MyProposals";
 import Messages from "./Pages/Messages";
+import Profile from "./Pages/Profile";
+import PublicProfile from "./Pages/PublicProfile";
 
 
 import "./App.css";
 
-export default function App(): JSX.Element {
+export default function App() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -24,21 +26,7 @@ export default function App(): JSX.Element {
   return (
     <BrowserRouter>
       <div className="page">
-        {mounted && (
-          <div className="particles-bg">
-            <Particles
-              particleColors={["#dbdbdb"]}
-              particleCount={400}
-              particleSpread={10}
-              speed={0.1}
-              particleBaseSize={200}
-              moveParticlesOnHover
-              alphaParticles={false}
-              disableRotation={false}
-              pixelRatio={window.devicePixelRatio || 1}
-            />
-          </div>
-        )}
+        {mounted && <InteractiveBackground />}
         <Header />
 
         <div className="content">
@@ -51,6 +39,8 @@ export default function App(): JSX.Element {
             <Route path="/find-work" element={<FindWork />} />
             <Route path="/proposals" element={<MyProposals />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:id" element={<PublicProfile />} />
           </Routes>
         </div>
       </div>

@@ -1,0 +1,22 @@
+.interactive-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0d0d0d;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cursor-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle at center, rgba(100, 108, 255, 0.12), transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s ease-out;
+  pointer-events: none;
+}

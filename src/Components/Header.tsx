@@ -10,11 +10,25 @@ export default function Header(): JSX.Element | null {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
+    // Initial fetch
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => setProfile(data));
       }
     });
+
+    // Listen for auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        supabase.from('profiles').select('*').eq('id', session.user.id).single().then(({ data }) => setProfile(data));
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -39,7 +53,13 @@ export default function Header(): JSX.Element | null {
       </div>
 
       <div className="dash-user-actions">
-        {profile && <span className="user-name">{profile.full_name}</span>}
+        {profile && (
+          <NavLink to="/profile" style={{ textDecoration: 'none' }}>
+            <span className="user-name" style={{ cursor: 'pointer' }}>
+              {profile.full_name} {profile.role ? `(${profile.role})` : ""}
+            </span>
+          </NavLink>
+        )}
         <button className="dash-login-btn" onClick={handleLogout}>
           Logout
         </button>
