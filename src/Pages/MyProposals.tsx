@@ -201,12 +201,12 @@ export default function MyProposals(): JSX.Element {
                 <div className="kanban-board">
                     {/* PENDING COLUMN */}
                     <div className="kanban-col">
-                        <div className="col-header">
-                            <h3>Pending Review <span className="count-badge">{pending.length}</span></h3>
+                        <div className="col-header col-header--pending">
+                            <h3>Pending Review <span className="count-badge count-badge--pending">{pending.length}</span></h3>
                         </div>
                         <div className="col-content">
                             {pending.map(p => (
-                                <div key={p.id} className="prop-card">
+                                <div key={p.id} className="prop-card prop-card-pending">
                                     <h4>{p.job?.title || 'Unknown Project'}</h4>
                                     <p className="prop-meta">Bid: ₹{p.bid_amount} | Budget: ₹{p.job?.budget}</p>
                                     {getTimelineFromCoverLetter(p.cover_letter) && <p className="prop-date">Timeline proposed: {getTimelineFromCoverLetter(p.cover_letter)}</p>}
@@ -220,12 +220,12 @@ export default function MyProposals(): JSX.Element {
 
                     {/* ACCEPTED COLUMN */}
                     <div className="kanban-col">
-                        <div className="col-header">
-                            <h3>Accepted <span className="count-badge">{accepted.length}</span></h3>
+                        <div className="col-header col-header--accepted">
+                            <h3>Accepted <span className="count-badge count-badge--accepted">{accepted.length}</span></h3>
                         </div>
                         <div className="col-content">
                             {accepted.map(p => (
-                                <div key={p.id} className="prop-card border-green">
+                                <div key={p.id} className="prop-card prop-card-accepted">
                                     <h4>{p.job?.title || 'Unknown Project'}</h4>
                                     <p className="prop-meta">Winning Bid: ₹{p.bid_amount}</p>
                                     {getTimelineFromCoverLetter(p.cover_letter) && <p className="prop-date">Agreed timeline: {getTimelineFromCoverLetter(p.cover_letter)}</p>}
@@ -249,12 +249,12 @@ export default function MyProposals(): JSX.Element {
 
                     {/* REJECTED COLUMN */}
                     <div className="kanban-col">
-                        <div className="col-header">
-                            <h3>Rejected <span className="count-badge">{rejected.length}</span></h3>
+                        <div className="col-header col-header--rejected">
+                            <h3>Rejected <span className="count-badge count-badge--rejected">{rejected.length}</span></h3>
                         </div>
                         <div className="col-content">
                             {rejected.map(p => (
-                                <div key={p.id} className="prop-card border-red">
+                                <div key={p.id} className="prop-card prop-card-rejected">
                                     <h4>{p.job?.title || 'Unknown Project'}</h4>
                                     <p className="prop-meta">Bid: ₹{p.bid_amount}</p>
                                     {getTimelineFromCoverLetter(p.cover_letter) && <p className="prop-date">Your proposed timeline: {getTimelineFromCoverLetter(p.cover_letter)}</p>}
