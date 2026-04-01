@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
-import type { Proposal } from "../types";
 import "./Proposals.css";
 import ShinyText from "../Components/ShinyText";
 import BlurText from "../Components/BlurText";
@@ -20,25 +19,91 @@ export default function MyProposals(): JSX.Element {
     const [reviewTarget, setReviewTarget] = useState<any>(null);
     const [rating, setRating] = useState(5);
     const [reviewComment, setReviewComment] = useState("");
+    const channelRef = useRef<any>(null);
+    const pollingRef = useRef<number | null>(null);
+    const userIdRef = useRef<string | null>(null);
+    const focusHandlerRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
-        fetchProposals();
+        initProposals();
+
+        return () => {
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+                channelRef.current = null;
+            }
+
+            if (pollingRef.current) {
+                window.clearInterval(pollingRef.current);
+                pollingRef.current = null;
+            }
+
+            if (focusHandlerRef.current) {
+                window.removeEventListener('focus', focusHandlerRef.current);
+                focusHandlerRef.current = null;
+            }
+        };
     }, []);
 
-    const fetchProposals = async () => {
-        setLoading(true);
+    const initProposals = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
+        userIdRef.current = user.id;
+
+        await fetchProposals(user.id);
+
+        if (channelRef.current) {
+            supabase.removeChannel(channelRef.current);
+            channelRef.current = null;
+        }
+
+        channelRef.current = supabase
+            .channel(`my-proposals:${user.id}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'proposals' }, () => {
+                fetchProposals(user.id, true);
+            })
+            .subscribe();
+
+        // Fallback refresh in case Realtime for proposals is not configured.
+        pollingRef.current = window.setInterval(() => {
+            if (userIdRef.current) {
+                fetchProposals(userIdRef.current, true);
+            }
+        }, 3500);
+
+        const onWindowFocus = () => {
+            if (userIdRef.current) {
+                fetchProposals(userIdRef.current, true);
+            }
+        };
+        if (focusHandlerRef.current) {
+            window.removeEventListener('focus', focusHandlerRef.current);
+        }
+        focusHandlerRef.current = onWindowFocus;
+        window.addEventListener('focus', onWindowFocus);
+    };
+
+    const fetchProposals = async (userId?: string, silent = false) => {
+        if (!silent) setLoading(true);
+        const resolvedUserId = userId || (await supabase.auth.getUser()).data.user?.id;
+        if (!resolvedUserId) {
+            if (!silent) setLoading(false);
+            return;
+        }
 
         const { data, error } = await supabase
             .from('proposals')
             .select('*, job:jobs(*)')
-            .eq('freelancer_id', user.id)
+            .eq('freelancer_id', resolvedUserId)
             .order('created_at', { ascending: false });
 
         if (error) console.error('Error fetching proposals:', error);
         else setProposals(data || []);
-        setLoading(false);
+        if (!silent) setLoading(false);
     };
 
     const handleRevise = async (e: React.FormEvent) => {
@@ -105,6 +170,22 @@ export default function MyProposals(): JSX.Element {
     const accepted = proposals.filter(p => p.status === 'accepted');
     const rejected = proposals.filter(p => p.status === 'rejected');
 
+    const getTimelineFromCoverLetter = (coverLetter: string) => {
+        const firstLine = (coverLetter || "").split("\n")[0]?.trim();
+        if (firstLine?.toLowerCase().startsWith("timeline:")) {
+            return firstLine.slice(9).trim();
+        }
+        return "";
+    };
+
+    const getWorkStatusLabel = (workStatus: string | null | undefined) => {
+        if (workStatus === 'completed') return 'Completed';
+        if (workStatus === 'submitted') return 'Submitted for review';
+        if (workStatus === 'in_progress') return 'In progress';
+        if (workStatus === 'not_started') return 'Not started';
+        return 'Not started';
+    };
+
     return (
         <div className="dash-container proposals-page" style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' }}>
             <div className="dash-hero" style={{ marginBottom: "50px", textAlign: 'center' }}>
@@ -128,6 +209,7 @@ export default function MyProposals(): JSX.Element {
                                 <div key={p.id} className="prop-card">
                                     <h4>{p.job?.title || 'Unknown Project'}</h4>
                                     <p className="prop-meta">Bid: ₹{p.bid_amount} | Budget: ₹{p.job?.budget}</p>
+                                    {getTimelineFromCoverLetter(p.cover_letter) && <p className="prop-date">Timeline proposed: {getTimelineFromCoverLetter(p.cover_letter)}</p>}
                                     <p className="prop-date">Applied: {new Date(p.created_at).toLocaleDateString()}</p>
                                     <span className="badge badge-pending">Waiting for response</span>
                                 </div>
@@ -146,7 +228,10 @@ export default function MyProposals(): JSX.Element {
                                 <div key={p.id} className="prop-card border-green">
                                     <h4>{p.job?.title || 'Unknown Project'}</h4>
                                     <p className="prop-meta">Winning Bid: ₹{p.bid_amount}</p>
+                                    {getTimelineFromCoverLetter(p.cover_letter) && <p className="prop-date">Agreed timeline: {getTimelineFromCoverLetter(p.cover_letter)}</p>}
                                     <span className="badge badge-accepted">Client hired you</span>
+                                    <p className="prop-date text-green" style={{ marginTop: '8px' }}>Client action: Accepted</p>
+                                    <p className="prop-date" style={{ marginTop: '8px' }}>Project status: {getWorkStatusLabel(p.work_status)}</p>
                                     
                                     {p.work_status === 'completed' && (
                                        <button 
@@ -172,7 +257,9 @@ export default function MyProposals(): JSX.Element {
                                 <div key={p.id} className="prop-card border-red">
                                     <h4>{p.job?.title || 'Unknown Project'}</h4>
                                     <p className="prop-meta">Bid: ₹{p.bid_amount}</p>
+                                    {getTimelineFromCoverLetter(p.cover_letter) && <p className="prop-date">Your proposed timeline: {getTimelineFromCoverLetter(p.cover_letter)}</p>}
                                     <span className="badge badge-rejected mb-3">Not selected</span>
+                                                                        <p className="prop-date text-red" style={{ marginBottom: '10px' }}>Client action: Rejected</p>
                                     <button 
                                       className="btn-outline-red w-full"
                                       onClick={() => {

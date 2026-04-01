@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
-import type { Job, Proposal } from "../types";
 import "./Findwork.css";
 import ShinyText from "../Components/ShinyText";
 import BlurText from "../Components/BlurText";
@@ -10,6 +9,7 @@ export default function FindWork(): JSX.Element {
     const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
     const [userSkills, setUserSkills] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     // Filters
     const [searchTerm, setSearchTerm] = useState("");
@@ -24,14 +24,23 @@ export default function FindWork(): JSX.Element {
     const [timeline, setTimeline] = useState("");
     const [coverLetter, setCoverLetter] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const channelRef = useRef<any>(null);
 
     useEffect(() => {
-        fetchJobsAndProfile();
+        fetchJobsAndProfile(true);
+
+        return () => {
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+                channelRef.current = null;
+            }
+        };
     }, []);
 
-    const fetchJobsAndProfile = async () => {
+    const fetchJobsAndProfile = async (setupRealtime = false) => {
         setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id ?? null);
         
         // Fetch Profile for Recommendations
         if (user) {
@@ -57,6 +66,24 @@ export default function FindWork(): JSX.Element {
         if (!error && data) {
             setJobs(data);
         }
+
+        if (user && setupRealtime) {
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+                channelRef.current = null;
+            }
+
+            channelRef.current = supabase
+                .channel(`find-work:${user.id}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => {
+                    fetchJobsAndProfile(false);
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'proposals' }, () => {
+                    fetchJobsAndProfile(false);
+                })
+                .subscribe();
+        }
+
         setLoading(false);
     };
 
@@ -82,11 +109,28 @@ export default function FindWork(): JSX.Element {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || !selectedJob) return;
 
+        const { data: existingProposal } = await supabase
+            .from('proposals')
+            .select('id')
+            .eq('job_id', selectedJob.id)
+            .eq('freelancer_id', user.id)
+            .maybeSingle();
+
+        if (existingProposal) {
+            alert("You already placed a bid for this project.");
+            setSubmitting(false);
+            return;
+        }
+
+        const combinedCoverLetter = timeline.trim()
+            ? `Timeline: ${timeline.trim()}\n\n${coverLetter.trim()}`
+            : coverLetter.trim();
+
         const { error } = await supabase.from('proposals').insert([{
             job_id: selectedJob.id,
             freelancer_id: user.id,
             bid_amount: Number(bidAmount),
-            cover_letter: coverLetter,
+            cover_letter: combinedCoverLetter,
             status: 'pending'
         }]);
 
@@ -120,7 +164,7 @@ export default function FindWork(): JSX.Element {
         if (minBudget && j.budget < Number(minBudget)) return false;
         if (maxBudget && j.budget > Number(maxBudget)) return false;
         if (skillFilter) {
-            const reqSkills = Array.isArray(j.required_skills) ? j.required_skills.join(' ') : (j.required_skills || "");
+            const reqSkills = Array.isArray(j.skills_required) ? j.skills_required.join(' ') : (j.skills_required || "");
             if (!reqSkills.toLowerCase().includes(skillFilter.toLowerCase())) return false;
         }
         return true;
@@ -129,7 +173,7 @@ export default function FindWork(): JSX.Element {
     if (activeTab === 'saved') {
         filteredJobs = filteredJobs.filter(j => savedJobIds.includes(j.id));
     } else if (activeTab === 'recommended') {
-        filteredJobs = filteredJobs.filter(j => calculateScore(j.required_skills) > 0).sort((a,b) => calculateScore(b.required_skills) - calculateScore(a.required_skills));
+        filteredJobs = filteredJobs.filter(j => calculateScore(j.skills_required) > 0).sort((a,b) => calculateScore(b.skills_required) - calculateScore(a.skills_required));
     }
 
     const timeAgo = (dateString: string) => {
@@ -164,7 +208,7 @@ export default function FindWork(): JSX.Element {
 
             <div className="jobs-list">
                 {loading ? <p className="text-gray text-center p-10">Loading jobs...</p> : filteredJobs.map(job => {
-                    const skillList = Array.isArray(job.required_skills) ? job.required_skills : (job.required_skills || "").split(',');
+                    const skillList = Array.isArray(job.skills_required) ? job.skills_required : (job.skills_required || "").split(',');
                     const bidCount = job.proposals ? job.proposals.length : 0;
                     const isSaved = savedJobIds.includes(job.id);
                     const clientName = job.client?.full_name || 'Client';
@@ -198,11 +242,11 @@ export default function FindWork(): JSX.Element {
                                 <div className="jm-left">
                                     <span className="budget-pill">₹{job.budget}</span>
                                     <span className="bid-count-pill">{bidCount} Bids so far</span>
-                                    {activeTab === 'recommended' && calculateScore(job.required_skills) > 0 && (
+                                    {activeTab === 'recommended' && calculateScore(job.skills_required) > 0 && (
                                         <span className="match-pill text-green">⭐ Top Match</span>
                                     )}
                                 </div>
-                                <button className="btn-primary-purple" onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}>Place bid</button>
+                                <button className="btn-primary-purple" onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }} disabled={currentUserId === job.client_id}>Place bid</button>
                             </div>
                         </div>
                     );

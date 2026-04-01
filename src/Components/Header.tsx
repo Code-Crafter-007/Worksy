@@ -37,7 +37,7 @@ export default function Header(): JSX.Element | null {
   };
 
   // Only show full header on dashboard pages
-  const isDashboardPages = ["/dashboard", "/find-work", "/proposals", "/messages"].some(path => location.pathname.startsWith(path));
+  const isDashboardPages = ["/dashboard", "/find-work", "/proposals", "/post-work", "/client-bids", "/client-projects", "/messages"].some(path => location.pathname.startsWith(path));
 
   if (!isDashboardPages) return null;
 
@@ -49,6 +49,9 @@ export default function Header(): JSX.Element | null {
         <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>Dashboard</NavLink>
         {profile?.role === 'freelancer' && <NavLink to="/find-work" className={({ isActive }) => isActive ? "active" : ""}>Find Work</NavLink>}
         {profile?.role === 'freelancer' && <NavLink to="/proposals" className={({ isActive }) => isActive ? "active" : ""}>My Proposals</NavLink>}
+        {profile?.role === 'client' && <NavLink to="/post-work" className={({ isActive }) => isActive ? "active" : ""}>Post Work</NavLink>}
+        {profile?.role === 'client' && <NavLink to="/client-bids" className={({ isActive }) => isActive ? "active" : ""}>Manage Bids</NavLink>}
+        {profile?.role === 'client' && <NavLink to="/client-projects" className={({ isActive }) => isActive ? "active" : ""}>Accepted Projects</NavLink>}
         <NavLink to="/messages" className={({ isActive }) => isActive ? "active" : ""}>Messages</NavLink>
       </div>
 
