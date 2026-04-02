@@ -1,3 +1,4 @@
+import { type JSX } from "react";
 import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";

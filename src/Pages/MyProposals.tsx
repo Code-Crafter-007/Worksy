@@ -1,6 +1,7 @@
+import { type JSX } from "react";
+
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import type { Proposal } from "../types";
 import "./Proposals.css";
 import ShinyText from "../Components/ShinyText";
 import BlurText from "../Components/BlurText";

@@ -12,7 +12,7 @@ import MyProposals from "./Pages/MyProposals";
 import Messages from "./Pages/Messages";
 import Profile from "./Pages/Profile";
 import PublicProfile from "./Pages/PublicProfile";
-
+import MilestonesPage from "./Pages/MilestonesPage";
 
 import "./App.css";
 
@@ -41,6 +41,7 @@ export default function App() {
             <Route path="/messages" element={<Messages />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:id" element={<PublicProfile />} />
+            <Route path="/milestones" element={<MilestonesPage />} />
           </Routes>
         </div>
       </div>

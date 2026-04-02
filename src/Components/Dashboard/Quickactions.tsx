@@ -1,3 +1,4 @@
+import { type JSX } from "react";
 import "./QuickActions.css";
 
 export default function QuickActions(): JSX.Element {

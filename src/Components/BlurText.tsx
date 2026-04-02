@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -14,7 +14,7 @@ export default function BlurText({ text, className = '', delay = 0 }: { text: st
       );
     }
   }, { scope: container });
-
+  
   const letters = text.split('');
   return (
     <span ref={container} className={className} style={{ display: 'inline-block' }}>

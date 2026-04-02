@@ -19,7 +19,8 @@
 
 .auth-card input,
 .auth-card button,
-.auth-card a {
+.auth-card a,
+.auth-card select {   
   pointer-events: auto;
 }
 
@@ -97,4 +98,16 @@
   font-size: 12px;
   margin-top: 14px;
   color: #a1a1a1;
+}
+select.auth-input {
+  appearance: auto;
+  -webkit-appearance: auto;
+  cursor: pointer;
+  color: #fff;            /* 👈 force white text */
+  background: #1c1c1c;   /* 👈 match auth-input bg */
+}
+
+select.auth-input option {
+  background-color: #1a1a1a;
+  color: #fff;
 }
