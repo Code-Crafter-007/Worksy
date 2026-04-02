@@ -201,13 +201,24 @@ export default function FindWork(): JSX.Element {
                 
                 <div className="fw-tabs mt-4">
                     <button className={activeTab === 'all' ? 'fw-tab active' : 'fw-tab'} onClick={() => setActiveTab('all')}>All Projects</button>
-                    <button className={activeTab === 'recommended' ? 'fw-tab active' : 'fw-tab'} onClick={() => setActiveTab('recommended')}>✨ Recommended For You</button>
-                    <button className={activeTab === 'saved' ? 'fw-tab active' : 'fw-tab'} onClick={() => setActiveTab('saved')}>❤️ Saved Jobs</button>
+                    <button className={activeTab === 'recommended' ? 'fw-tab active' : 'fw-tab'} onClick={() => setActiveTab('recommended')}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        Recommended
+                    </button>
+                    <button className={activeTab === 'saved' ? 'fw-tab active' : 'fw-tab'} onClick={() => setActiveTab('saved')}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                        Saved Jobs
+                    </button>
                 </div>
             </div>
 
             <div className="jobs-list">
-                {loading ? <p className="text-gray text-center p-10">Loading jobs...</p> : filteredJobs.map(job => {
+                {loading ? (
+                    <div className="fw-loading">
+                        <div className="fw-spinner" />
+                        <span>Fetching jobs…</span>
+                    </div>
+                ) : filteredJobs.map(job => {
                     const skillList = Array.isArray(job.skills_required) ? job.skills_required : (job.skills_required || "").split(',');
                     const bidCount = job.proposals ? job.proposals.length : 0;
                     const isSaved = savedJobIds.includes(job.id);
@@ -224,8 +235,8 @@ export default function FindWork(): JSX.Element {
                                     </div>
                                 </div>
                                 <div className="job-top-actions">
-                                    <button className="heart-btn" onClick={(e) => toggleSaveJob(e, job.id)}>
-                                        {isSaved ? '❤️' : '🤍'}
+                                    <button className="heart-btn" onClick={(e) => toggleSaveJob(e, job.id)} title={isSaved ? 'Unsave job' : 'Save job'}>
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color: isSaved ? '#ef4444' : 'var(--text-muted)'}}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                                     </button>
                                 </div>
                             </div>

@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
 import InteractiveBackground from "./Components/InteractiveBackground";
+import LandingPage from "./Pages/LandingPage";
 import Login from "./Pages/Login";
 import Signup from "./Pages/Signup";
 import Header from "./Components/Header";
@@ -16,7 +18,6 @@ import ClientPostWork from "./Pages/ClientPostWork";
 import ClientBids from "./Pages/ClientBids";
 import ClientAcceptedProjects from "./Pages/ClientAcceptedProjects";
 
-
 import "./App.css";
 
 export default function App() {
@@ -27,29 +28,32 @@ export default function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <div className="page">
-        {mounted && <InteractiveBackground />}
-        <Header />
+    <ThemeProvider>
+      <BrowserRouter>
+        <div className="page">
+          <div className="noise-layer" aria-hidden="true" />
+          {mounted && <InteractiveBackground />}
+          <Header />
 
-        <div className="content">
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            {/* <Route path="/" element={<HomePage />} /> REMOVED DUPLICATE */}
+          <div className="content">
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
 
-            <Route path="/dashboard" element={<DashboardHome />} />
-            <Route path="/find-work" element={<FindWork />} />
-            <Route path="/proposals" element={<MyProposals />} />
-            <Route path="/post-work" element={<ClientPostWork />} />
-            <Route path="/client-bids" element={<ClientBids />} />
-            <Route path="/client-projects" element={<ClientAcceptedProjects />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/:id" element={<PublicProfile />} />
-          </Routes>
+              <Route path="/dashboard" element={<DashboardHome />} />
+              <Route path="/find-work" element={<FindWork />} />
+              <Route path="/proposals" element={<MyProposals />} />
+              <Route path="/post-work" element={<ClientPostWork />} />
+              <Route path="/client-bids" element={<ClientBids />} />
+              <Route path="/client-projects" element={<ClientAcceptedProjects />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:id" element={<PublicProfile />} />
+            </Routes>
+          </div>
         </div>
-      </div>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
