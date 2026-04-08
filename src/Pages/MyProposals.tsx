@@ -19,6 +19,11 @@ export default function MyProposals(): JSX.Element {
     const [reviewTarget, setReviewTarget] = useState<any>(null);
     const [rating, setRating] = useState(5);
     const [reviewComment, setReviewComment] = useState("");
+
+    // Submit Work Modal
+    const [submitTarget, setSubmitTarget] = useState<any>(null);
+    const [workUrl, setWorkUrl] = useState("");
+    const [workNotes, setWorkNotes] = useState("");
     const channelRef = useRef<any>(null);
     const pollingRef = useRef<number | null>(null);
     const userIdRef = useRef<string | null>(null);
@@ -101,8 +106,25 @@ export default function MyProposals(): JSX.Element {
             .eq('freelancer_id', resolvedUserId)
             .order('created_at', { ascending: false });
 
-        if (error) console.error('Error fetching proposals:', error);
-        else setProposals(data || []);
+        if (error) {
+            console.error('Error fetching proposals:', error);
+            if (!silent) setLoading(false);
+            return;
+        }
+        
+        if (data && data.length > 0) {
+            const jobIds = data.map((d: any) => d.job_id);
+            const { data: escrows } = await supabase.from('escrow_payments').select('project_id, status').in('project_id', jobIds).eq('freelancer_id', resolvedUserId);
+            
+            const enhancedData = data.map((d: any) => {
+                const escrow = escrows?.find((e: any) => e.project_id === d.job_id);
+                return { ...d, escrow_status: escrow?.status || 'none' };
+            });
+            setProposals(enhancedData);
+        } else {
+            setProposals([]);
+        }
+
         if (!silent) setLoading(false);
     };
 
@@ -134,6 +156,37 @@ export default function MyProposals(): JSX.Element {
             }
             alert("Bid revised and sent back for review!");
             setRevisingProposal(null);
+            fetchProposals();
+        }
+        setSubmitting(false);
+    };
+
+    const handleFinalSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!submitTarget) return;
+
+        setSubmitting(true);
+        setProposals(prev => prev.map(p => p.id === submitTarget.id ? { ...p, work_status: 'submitted' } : p)); // Optimistic UI Update
+
+        const { error } = await supabase
+            .from('proposals')
+            .update({ 
+                work_status: 'submitted',
+                delivered_work_url: workUrl,
+                delivered_work_notes: workNotes
+            })
+            .eq('id', submitTarget.id)
+            .select()
+            .single();
+
+        if (error) {
+            alert("Database Error submitting work: " + error.message);
+            fetchProposals(); // Revert optimistic changes
+        } else {
+            alert("Work officially submitted! The client can now review your deliverables and release the payment.");
+            setSubmitTarget(null);
+            setWorkUrl("");
+            setWorkNotes("");
             fetchProposals();
         }
         setSubmitting(false);
@@ -233,6 +286,23 @@ export default function MyProposals(): JSX.Element {
                                     <p className="prop-date text-green" style={{ marginTop: '8px' }}>Client action: Accepted</p>
                                     <p className="prop-date" style={{ marginTop: '8px' }}>Project status: {getWorkStatusLabel(p.work_status)}</p>
                                     
+                                    <div style={{ marginTop: '12px' }}>
+                                        {(p.escrow_status === 'none' || p.escrow_status === 'pending') && <span className="badge" style={{background: '#ffebee', color: '#c62828', display: 'inline-block'}}>Payment Pending</span>}
+                                        {p.escrow_status === 'held' && <span className="badge" style={{background: '#e8f5e9', color: '#2e7d32', display: 'inline-block'}}>Payment Secured 🔒</span>}
+                                        {p.escrow_status === 'released' && <span className="badge" style={{background: '#e0f7fa', color: '#006064', display: 'inline-block'}}>Payment Released ✓</span>}
+                                    </div>
+                                    
+                                    {p.escrow_status === 'held' && p.work_status !== 'submitted' && p.work_status !== 'completed' && (
+                                        <button onClick={() => setSubmitTarget(p)} className="btn-primary-purple" style={{width: '100%', marginTop: '15px', padding: '10px', fontSize: '14px', borderRadius: '8px'}}>
+                                            Deliver Work 🚀
+                                        </button>
+                                    )}
+                                    {p.work_status === 'submitted' && p.escrow_status !== 'released' && (
+                                        <div style={{marginTop: '15px', padding: '8px', background: '#fff9c4', color: '#f57f17', textAlign: 'center', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold'}}>
+                                            Under Client Review
+                                        </div>
+                                    )}
+                                    
                                     {p.work_status === 'completed' && (
                                        <button 
                                           className="btn-outline-green w-full mt-12"
@@ -281,7 +351,7 @@ export default function MyProposals(): JSX.Element {
             {revisingProposal && (
                 <div className="modal-overlay" onClick={() => setRevisingProposal(null)}>
                   <div className="modal-content" onClick={e => e.stopPropagation()}>
-                    <button className="close-btn" onClick={() => setRevisingProposal(null)}>×</button>
+                    <button className="close-btn" onClick={() => setRevisingProposal(null)}>Ã—</button>
                     <h2>Revise Bid for {revisingProposal.job?.title}</h2>
                     <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', marginTop: '10px' }}>
                       Update your proposal to stand a better chance. It will be sent back to the client for review.
@@ -306,7 +376,7 @@ export default function MyProposals(): JSX.Element {
             {reviewModalOpen && reviewTarget && (
                 <div className="modal-overlay" onClick={() => setReviewModalOpen(false)}>
                   <div className="modal-content" onClick={e => e.stopPropagation()}>
-                    <button className="close-btn" onClick={() => setReviewModalOpen(false)}>×</button>
+                    <button className="close-btn" onClick={() => setReviewModalOpen(false)}>Ã—</button>
                     <h2>Rate the Client</h2>
                     <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px' }}>
                       Leave a public review for this client. Let others know your experience!
@@ -315,11 +385,11 @@ export default function MyProposals(): JSX.Element {
                       <div className="form-group">
                         <label>Rating (1-5)</label>
                         <select value={rating} onChange={e => setRating(Number(e.target.value))} style={{background: 'rgba(255,255,255,0.05)', color: 'white', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)'}}>
-                           <option value="5">⭐⭐⭐⭐⭐ Excellent (5)</option>
-                           <option value="4">⭐⭐⭐⭐ Good (4)</option>
-                           <option value="3">⭐⭐⭐ Neutral (3)</option>
-                           <option value="2">⭐⭐ Poor (2)</option>
-                           <option value="1">⭐ Terrible (1)</option>
+                           <option value="5">â­â­â­â­â­ Excellent (5)</option>
+                           <option value="4">â­â­â­â­ Good (4)</option>
+                           <option value="3">â­â­â­ Neutral (3)</option>
+                           <option value="2">â­â­ Poor (2)</option>
+                           <option value="1">â­ Terrible (1)</option>
                         </select>
                       </div>
                       <div className="form-group">
@@ -328,6 +398,31 @@ export default function MyProposals(): JSX.Element {
                       </div>
                       <button type="submit" className="submit-bid-btn" disabled={submitting}>
                         {submitting ? "Submitting..." : "Submit Review"}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+            )}
+
+            {submitTarget && (
+                <div className="modal-overlay" onClick={() => setSubmitTarget(null)}>
+                  <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <button className="close-btn" onClick={() => setSubmitTarget(null)}>Ã—</button>
+                    <h2>Deliver Work: {submitTarget.job?.title}</h2>
+                    <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px', marginTop: '10px' }}>
+                      Submit your final deliverables here. The client will review your work before releasing the escrow payment.
+                    </p>
+                    <form onSubmit={handleFinalSubmit} className="bid-form">
+                      <div className="form-group">
+                        <label>Deliverable URL (Google Drive, GitHub, Figma, etc.)</label>
+                        <input type="url" placeholder="https://..." required value={workUrl} onChange={e => setWorkUrl(e.target.value)} />
+                      </div>
+                      <div className="form-group">
+                        <label>Final Notes for Client</label>
+                        <textarea required rows={4} placeholder="Hey! I have finished the wireframes..." value={workNotes} onChange={e => setWorkNotes(e.target.value)} />
+                      </div>
+                      <button type="submit" className="submit-bid-btn" disabled={submitting} style={{background: '#8A2BE2'}}>
+                        {submitting ? "Submitting..." : "Submit Final Work"}
                       </button>
                     </form>
                   </div>
