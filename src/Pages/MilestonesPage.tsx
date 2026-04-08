@@ -184,8 +184,8 @@ export default function MilestonesPage() {
   if (loading) return <div className="dashboard-grid-page"><p style={{ padding: "40px" }}>Loading...</p></div>;
 
   return (
-    <div className="dashboard-grid-page">
-      <div className="dash-header-profile">
+      <div className="dashboard-grid-page" style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 24px" }}>
+        <div className="dash-header-profile">
         <h2>Milestones</h2>
         <p style={{ color: "#888", fontSize: "14px", margin: "4px 0 0" }}>
           Track deliverables and project checkpoints

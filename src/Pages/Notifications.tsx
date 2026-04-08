@@ -114,8 +114,8 @@ export default function Notifications() {
   if (loading) return <div className="dashboard-grid-page"><p style={{ padding: "40px" }}>Loading notifications...</p></div>;
 
   return (
-    <div className="dashboard-grid-page">
-      {/* Header */}
+<div className="dashboard-grid-page" style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 24px" }}>
+          {/* Header */}
       <div className="dash-header-profile" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h2>Notifications</h2>
@@ -133,8 +133,8 @@ export default function Notifications() {
       </div>
 
       {/* Filter tabs */}
-      <div style={{ display: "flex", gap: "8px", margin: "16px 0 24px" }}>
-        {(["all", "unread"] as const).map((f) => (
+            <div style={{ display: "flex", gap: "8px", margin: "16px 0 24px", width: "fit-content" }}>
+            {(["all", "unread"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
