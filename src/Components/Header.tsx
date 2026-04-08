@@ -8,6 +8,9 @@ export default function Header(): JSX.Element | null {
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<any>(null);
+  const [isLightMode, setIsLightMode] = useState(() => {
+    return localStorage.getItem('theme') === 'light';
+  });
 
   useEffect(() => {
     // Initial fetch
@@ -31,6 +34,16 @@ export default function Header(): JSX.Element | null {
     };
   }, []);
 
+  useEffect(() => {
+    if (isLightMode) {
+      document.body.classList.add('light-mode');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.body.classList.remove('light-mode');
+      localStorage.setItem('theme', 'dark');
+    }
+  }, [isLightMode]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -53,6 +66,13 @@ export default function Header(): JSX.Element | null {
       </div>
 
       <div className="dash-user-actions">
+        <button 
+          className="theme-toggle-btn" 
+          onClick={() => setIsLightMode(!isLightMode)}
+          aria-label="Toggle Theme"
+        >
+          {isLightMode ? '🌙' : '☀️'}
+        </button>
         {profile && (
           <NavLink to="/profile" style={{ textDecoration: 'none' }}>
             <span className="user-name" style={{ cursor: 'pointer' }}>

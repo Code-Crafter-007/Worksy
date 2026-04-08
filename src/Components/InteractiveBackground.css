@@ -4,7 +4,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #0d0d0d;
+  background-color: var(--bg-color);
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
@@ -14,7 +14,7 @@
   position: absolute;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle at center, rgba(100, 108, 255, 0.12), transparent 70%);
+  background: radial-gradient(circle at center, var(--cursor-glow), transparent 70%);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: transform 0.1s ease-out;

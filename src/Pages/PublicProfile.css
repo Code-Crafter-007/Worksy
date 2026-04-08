@@ -3,12 +3,12 @@
   margin: 0 auto;
   padding: 40px 24px;
   font-family: system-ui, sans-serif;
-  color: #fff;
+  color: var(--text-color);
 }
 
 .pub-header-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 40px;
   display: flex;
@@ -21,8 +21,8 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  background: #222;
+  border: 3px solid var(--card-border);
+  background: var(--bg-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,8 +83,8 @@
 }
 
 .pub-panel {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 30px;
   margin-bottom: 30px;
@@ -94,11 +94,11 @@
   font-size: 20px;
   margin: 0 0 20px 0;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .pub-bio {
-  color: #ccc;
+  color: var(--text-sub);
   line-height: 1.6;
   font-size: 15px;
   white-space: pre-wrap;
@@ -111,10 +111,11 @@
 }
 
 .pub-skill-tag {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-border);
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
+  color: var(--text-color);
 }
 
 .reviews-list {
@@ -124,7 +125,7 @@
 }
 
 .review-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
   padding: 24px;
   border-radius: 8px;
 }
@@ -141,14 +142,14 @@
 }
 
 .review-comment {
-  color: #ddd;
+  color: var(--text-sub);
   font-size: 15px;
   line-height: 1.5;
   margin-bottom: 12px;
 }
 
 .review-date {
-  color: #777;
+  color: var(--text-muted);
   font-size: 12px;
 }
 

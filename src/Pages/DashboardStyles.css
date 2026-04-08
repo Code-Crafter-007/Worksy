@@ -7,7 +7,7 @@
 .dash-header-profile h2 {
   font-size: 26px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-color);
   margin-bottom: 30px;
 }
 
@@ -15,7 +15,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 600;
   margin-bottom: 16px;
 }
@@ -38,13 +38,13 @@
 
 .stat-label {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-sub);
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-color);
 }
 
 .text-green { color: #4ade80; }
@@ -71,8 +71,8 @@
 }
 
 .panel-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 24px;
 }
@@ -87,7 +87,7 @@
 .panel-header h3 {
   font-size: 17px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-color);
   margin: 0;
 }
 
@@ -104,7 +104,7 @@
 
 .client-due {
   font-size: 13px;
-  color: #999;
+  color: var(--text-muted);
   margin-bottom: 20px;
 }
 
@@ -116,20 +116,20 @@
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #ddd;
+  color: var(--text-sub);
   margin-bottom: 8px;
 }
 
 .progress-bar-bg {
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-border);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: #3b82f6;
+  background: var(--primary-color);
   border-radius: 4px;
   transition: width 0.4s ease;
 }
@@ -137,7 +137,7 @@
 .milestones-subtitle {
   font-size: 12px;
   font-weight: 600;
-  color: #ccc;
+  color: var(--text-sub);
   margin-bottom: 12px;
 }
 
@@ -161,7 +161,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
+  color: var(--text-color);
 }
 
 .dot {
@@ -184,8 +184,8 @@
 .btn-outline {
   flex: 1;
   background: transparent;
-  color: #ccc;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-sub);
+  border: 1px solid var(--card-border);
   padding: 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -195,9 +195,9 @@
 }
 
 .btn-outline:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: #888;
-  color: #fff;
+  background: var(--card-bg-hover);
+  border-color: var(--card-border-hover);
+  color: var(--text-color);
 }
 
 .bid-tracker-list {
@@ -211,14 +211,14 @@
 }
 
 .bid-meta {
-  color: #aaa;
+  color: var(--text-sub);
   font-size: 13px;
   margin-bottom: 6px;
 }
 
 .bid-desc {
   font-size: 13px;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .w-full { width: 100%; }
@@ -249,12 +249,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #eee;
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .activity-time {
-  color: #888;
+  color: var(--text-muted);
   font-size: 12px;
 }
 

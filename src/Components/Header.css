@@ -8,9 +8,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--header-bg);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--card-border);
   z-index: 100;
   pointer-events: auto;
   /* Changed to auto to allow clicks */
@@ -23,14 +23,14 @@
 
 .nav-center a {
   text-decoration: none;
-  color: #cfcfcf;
+  color: var(--text-sub);
   font-size: 14px;
   transition: color 0.3s ease;
 }
 
 .nav-center a:hover,
 .nav-center a.active {
-  color: #ffffff;
+  color: var(--text-color);
 }
 
 .dash-user-actions {
@@ -40,14 +40,14 @@
 }
 
 .user-name {
-  color: #cfcfcf;
+  color: var(--text-sub);
   font-size: 14px;
 }
 
 .dash-login-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: white;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
   padding: 8px 18px;
   border-radius: 20px;
   cursor: pointer;
@@ -55,7 +55,22 @@
 }
 
 .dash-login-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--card-bg-hover);
+}
+
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 4px;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
+}
+.light-mode .theme-toggle-btn {
+  /* No special filter needed for emojis but keeping class selector here if needed */
 }
 
 @media (max-width: 768px) {

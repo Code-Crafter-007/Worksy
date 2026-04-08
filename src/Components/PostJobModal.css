@@ -12,18 +12,18 @@
 }
 
 .modal-content {
-    background: white;
+    background: var(--bg-color);
     padding: 2rem;
     border-radius: 8px;
     width: 100%;
     max-width: 500px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
 .modal-content h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
-    color: #333;
+    color: var(--text-color);
 }
 
 .form-group {
@@ -33,7 +33,7 @@
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #555;
+    color: var(--text-muted);
     font-weight: 500;
 }
 
@@ -41,15 +41,17 @@
 .form-group textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--card-border);
     border-radius: 4px;
     font-size: 1rem;
+    background: var(--card-bg);
+    color: var(--text-color);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #228be6;
+    border-color: var(--primary-color);
 }
 
 .modal-actions {
@@ -61,15 +63,16 @@
 
 .cancel-btn {
     background: transparent;
-    border: 1px solid #ccc;
+    border: 1px solid var(--card-border);
+    color: var(--text-color);
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
 }
 
 .submit-btn {
-    background: #228be6;
-    color: white;
+    background: var(--primary-color);
+    color: var(--primary-text-color);
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -78,5 +81,5 @@
 }
 
 .submit-btn:hover {
-    background: #1c7ed6;
+    background: var(--primary-hover);
 }
