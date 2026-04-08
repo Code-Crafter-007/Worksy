@@ -32,7 +32,7 @@ export const seedMockData = async () => {
             description: 'Need 10 blog posts about AI trends.',
             budget: 200,
             status: 'open',
-            skills_required: ['Writing', 'SEO'],
+            skills_required: ['Writing', 'SEO'],    
             deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
         }
     ];
