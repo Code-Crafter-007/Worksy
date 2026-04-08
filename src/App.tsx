@@ -17,7 +17,8 @@ import PublicProfile from "./Pages/PublicProfile";
 import ClientPostWork from "./Pages/ClientPostWork";
 import ClientBids from "./Pages/ClientBids";
 import ClientAcceptedProjects from "./Pages/ClientAcceptedProjects";
-
+import MilestonesPage from "./Pages/MilestonesPage";
+import Notifications from "./Pages/Notifications";
 import "./App.css";
 
 export default function App() {
@@ -42,6 +43,8 @@ export default function App() {
               <Route path="/signup" element={<Signup />} />
 
               <Route path="/dashboard" element={<DashboardHome />} />
+              <Route path="/milestones" element={<MilestonesPage />} />              
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/find-work" element={<FindWork />} />
               <Route path="/proposals" element={<MyProposals />} />
               <Route path="/post-work" element={<ClientPostWork />} />

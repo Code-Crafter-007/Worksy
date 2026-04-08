@@ -5,8 +5,15 @@ import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 import HamburgerMenu from "./HamburgerMenu";
 import "./Header.css";
+import { type JSX } from "react";
+const DASHBOARD_PATHS = ["/dashboard", "/find-work", "/proposals", "/post-work", "/client-bids", "/client-projects", "/messages", "/profile", "/milestones", "/payments", "/reviews", "/notifications"];
 
-const DASHBOARD_PATHS = ["/dashboard", "/find-work", "/proposals", "/post-work", "/client-bids", "/client-projects", "/messages", "/profile"];
+const IconBell = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+);
 
 export default function Header(): JSX.Element | null {
   const navigate = useNavigate();
@@ -14,31 +21,75 @@ export default function Header(): JSX.Element | null {
   const [profile, setProfile] = useState<any>(null);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         supabase.from("profiles").select("*").eq("id", user.id).single().then(({ data }) => setProfile(data));
+        fetchUnreadCount(user.id);
+        setupRealtimeNotifications(user.id);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         supabase.from("profiles").select("*").eq("id", session.user.id).single().then(({ data }) => setProfile(data));
+        fetchUnreadCount(session.user.id);
       } else {
         setProfile(null);
+        setUnreadCount(0);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Scroll-aware header
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Refetch unread count when navigating away from notifications page
+  useEffect(() => {
+    if (location.pathname !== "/notifications") {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) fetchUnreadCount(user.id);
+      });
+    }
+  }, [location.pathname]);
+
+  const fetchUnreadCount = async (userId: string) => {
+    const { count } = await supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("is_read", false);
+    setUnreadCount(count || 0);
+  };
+
+  const setupRealtimeNotifications = (userId: string) => {
+    supabase
+      .channel("header-notifications")
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${userId}`,
+      }, () => {
+        setUnreadCount(prev => prev + 1);
+      })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${userId}`,
+      }, () => {
+        fetchUnreadCount(userId);
+      })
+      .subscribe();
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -49,7 +100,6 @@ export default function Header(): JSX.Element | null {
   const isPublicLanding = location.pathname === "/";
   const isAuthPage = location.pathname === "/login" || location.pathname === "/signup";
 
-  // Don't render header on auth pages (they have their own nav)
   if (isAuthPage) return null;
 
   return (
@@ -103,11 +153,43 @@ export default function Header(): JSX.Element | null {
 
           {isDashboard && profile && (
             <>
+              {/* Notification Bell */}
+              <button
+                className="header-bell-btn"
+                onClick={() => navigate("/notifications")}
+                aria-label="Notifications"
+                style={{ position: "relative", background: "none", border: "none", cursor: "pointer", color: "inherit", padding: "6px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                <IconBell />
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: "absolute",
+                    top: "0px",
+                    right: "0px",
+                    background: "#ef4444",
+                    color: "#fff",
+                    fontSize: "10px",
+                    fontWeight: "700",
+                    borderRadius: "10px",
+                    minWidth: "16px",
+                    height: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 4px",
+                    lineHeight: 1,
+                  }}>
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
               <NavLink to="/profile" className="header-user-chip">
                 <span className="header-avatar">{profile.full_name?.charAt(0)}</span>
                 <span className="header-username desktop-only">{profile.full_name}</span>
               </NavLink>
               <button className="header-btn-ghost desktop-only" onClick={handleLogout}>Logout</button>
+
               {/* Hamburger (mobile only) */}
               <button
                 className="hamburger-btn mobile-only"

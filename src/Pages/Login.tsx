@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import ThemeToggle from "../Components/ThemeToggle";
 import "./Auth.css";
-
+import { type JSX } from "react";
 export default function Login(): JSX.Element {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

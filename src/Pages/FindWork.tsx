@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import "./Findwork.css";
 import ShinyText from "../Components/ShinyText";
 import BlurText from "../Components/BlurText";
-
+import { type JSX } from "react";
 export default function FindWork(): JSX.Element {
     const [jobs, setJobs] = useState<any[]>([]);
     const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
@@ -141,6 +141,12 @@ export default function FindWork(): JSX.Element {
                 user_id: user.id,
                 action_type: 'bid_placed',
                 description: `You placed a ₹${bidAmount} bid on ${selectedJob.title}`,
+            }]);
+            await supabase.from('notifications').insert([{
+                user_id: selectedJob.client_id,
+                type: 'new_bid',
+                title: 'New Bid Received 📨',
+                message: `A freelancer placed a ₹${bidAmount} bid on your project "${selectedJob.title}".`,
             }]);
             
             alert("Bid submitted successfully!");

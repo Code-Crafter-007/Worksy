@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import "./Proposals.css";
 import ShinyText from "../Components/ShinyText";
 import BlurText from "../Components/BlurText";
-
+import { type JSX } from "react";
 export default function MyProposals(): JSX.Element {
     const [proposals, setProposals] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

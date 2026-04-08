@@ -128,6 +128,16 @@ export default function ClientBids() {
                 description: `Client ${actionText} your proposal for this project.`,
             },
         ]);
+        const selectedJob = jobs.find(j => j.id === proposal.job_id);  
+        console.log("About to insert notification for:", proposal.freelancer_id); 
+        await supabase.from("notifications").insert([{
+            user_id: proposal.freelancer_id,
+            type: nextStatus === "accepted" ? "bid_accepted" : "bid_rejected",
+            title: nextStatus === "accepted" ? "Bid Accepted! 🎉" : "Bid Rejected",
+            message: nextStatus === "accepted"
+                ? `Your bid on "${selectedJob?.title || 'a project'}" was accepted! Get started now.`
+                : `Your bid on "${selectedJob?.title || 'a project'}" was rejected by the client.`,
+        }]);
 
         await fetchJobsAndProposals(clientId, proposal.job_id);
         setUpdatingId(null);
