@@ -1,0 +1,148 @@
+/* ClientWorkspace — rebuilt with CSS variables */
+.client-workspace {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 36px 24px 60px;
+}
+
+.client-action-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.client-action-btn {
+  border: 1px solid var(--border-medium);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.client-action-btn:hover { color: var(--text-primary); background: var(--bg-surface-hover); border-color: var(--border-medium); }
+.client-action-btn.secondary { border-color: rgba(96, 165, 250, 0.4); color: var(--blue); }
+.client-action-btn.secondary:hover { background: rgba(96, 165, 250, 0.08); }
+.client-action-btn.reject { border-color: rgba(239, 68, 68, 0.4); color: var(--red); }
+.client-action-btn.reject:hover { background: rgba(239, 68, 68, 0.08); }
+.client-action-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.client-job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.client-job-list li { display: flex; justify-content: space-between; align-items: center; }
+
+.client-work-form { display: flex; flex-direction: column; gap: 16px; }
+
+.client-form-card .form-group { display: flex; flex-direction: column; gap: 6px; }
+.client-form-card input,
+.client-form-card textarea,
+.client-form-card select {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.client-form-card input:focus,
+.client-form-card textarea:focus,
+.client-form-card select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.client-form-card input::placeholder { color: var(--text-muted); }
+
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.client-jobs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.client-job-card { display: flex; flex-direction: column; gap: 10px; }
+.client-job-desc { color: var(--text-secondary); font-size: 14px; margin: 0; }
+.job-card-meta { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 12px; }
+
+.client-bids-layout { display: grid; grid-template-columns: 300px 1fr; gap: 14px; }
+.bid-jobs-panel, .bid-proposals-panel { min-height: 360px; }
+.bid-job-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+
+.job-row-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all var(--transition);
+}
+.job-row-btn:hover { border-color: var(--border-medium); background: var(--bg-surface-hover); }
+.job-row-btn.active { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+
+.proposal-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.proposal-card-client {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: var(--bg-surface);
+  transition: border-color var(--transition);
+}
+.proposal-card-client:hover { border-color: var(--border-medium); }
+
+.accepted-proposal-card {
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0;
+  background: var(--green-soft);
+}
+.accepted-proposal-card h4 { margin-top: 0; color: var(--text-primary); }
+
+.proposal-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.proposal-top h4 { margin: 0; color: var(--text-primary); font-size: 15px; font-weight: 700; }
+.proposal-top p { margin: 4px 0 0 0; color: var(--text-muted); font-size: 12px; }
+
+.proposal-amount { margin: 12px 0 8px 0; color: var(--green); font-weight: 700; font-size: 15px; }
+.proposal-letter { margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+.proposal-timeline { margin-top: 8px; margin-bottom: 0; color: var(--blue); font-size: 13px; }
+.proposal-extra { margin-top: 10px; margin-bottom: 0; color: var(--text-secondary); font-size: 13px; }
+.proposal-actions-row { margin-top: 12px; display: flex; gap: 8px; }
+
+.accepted-projects-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.accepted-project-card { display: flex; flex-direction: column; gap: 14px; }
+.accepted-project-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.accepted-project-head h3 { margin: 0; color: var(--text-primary); font-weight: 700; }
+.accepted-headline { margin-top: 4px; font-size: 13px; color: var(--text-secondary); }
+.accepted-meta-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.accepted-progress-block { display: flex; flex-direction: column; gap: 8px; }
+.accepted-milestones-block { display: flex; flex-direction: column; gap: 10px; }
+.compact-milestones { gap: 10px; }
+.accepted-at { margin: 0; font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 960px) {
+  .client-jobs-grid,
+  .proposal-grid,
+  .grid-3,
+  .client-bids-layout,
+  .accepted-projects-grid { grid-template-columns: 1fr; }
+  .accepted-meta-row { grid-template-columns: 1fr; }
+  .client-action-row { flex-direction: column; }
+}

@@ -1,340 +1,494 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import "./DashboardStyles.css";
+import "./Dashboard.css";
+
+/* ── Inline SVG Icons ─────────────────────────────────── */
+const IconBriefcase = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    <line x1="12" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="16" y2="12"/>
+  </svg>
+);
+const IconCheckCircle = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+);
+const IconActivity = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+);
+const IconCoin = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+  </svg>
+);
+const IconLayersFolders = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 6a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+  </svg>
+);
+const IconBellOff = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
+const IconClipboard = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 5H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+    <rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+  </svg>
+);
+const IconArrowRight = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+  </svg>
+);
+const IconPlus = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+);
+const IconSend = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+  </svg>
+);
+const IconRefreshCw = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+  </svg>
+);
+
+/* ── Status dot icons ─────────────────────────────────── */
+const IconDot = ({ color }: { color: string }) => (
+  <span style={{
+    display: "inline-block",
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    backgroundColor: color,
+    flexShrink: 0,
+  }} />
+);
 
 function timeAgo(dateString: string) {
-  const date = new Date(dateString);
-  const diffHours = Math.floor((new Date().getTime() - date.getTime()) / (1000 * 60 * 60));
-  if (diffHours < 24 && diffHours >= 0) {
-    if (diffHours === 0) return 'Just now';
-    return `${diffHours} hrs ago`;
-  }
-  if (diffHours < 48) return 'Yesterday';
-  return new Date(dateString).toLocaleDateString();
+  const diffHours = Math.floor((Date.now() - new Date(dateString).getTime()) / 3600000);
+  if (diffHours === 0) return "Just now";
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 48) return "Yesterday";
+  return new Date(dateString).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  completed: "#4ade80",
+  in_progress: "#60a5fa",
+  not_started: "#6b6b7a",
+  accepted: "#4ade80",
+  rejected: "#ef4444",
+  pending: "#f59e0b",
+  submitted: "#a78bfa",
+};
+
+/* ── Skeleton loader ──────────────────────────────────── */
+function DashSkeleton() {
+  return (
+    <div className="dash-page">
+      <div className="skel-hero skel" />
+      <div className="skel-stats">
+        {[...Array(4)].map((_, i) => <div key={i} className="skel-stat skel" />)}
+      </div>
+      <div className="skel-two-col">
+        <div className="skel-col-a skel" />
+        <div className="skel-col-b">
+          {[...Array(3)].map((_, i) => <div key={i} className="skel-bid skel" />)}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
-  
-  // Overview Stats
   const [totalBids, setTotalBids] = useState(0);
   const [acceptedBids, setAcceptedBids] = useState(0);
   const [inProgressBids, setInProgressBids] = useState(0);
   const [earned, setEarned] = useState(0);
-
-  // Active Project Data
   const [activeProject, setActiveProject] = useState<any>(null);
   const [milestones, setMilestones] = useState<any[]>([]);
-
-  // Bid Tracker Data
   const [recentProposals, setRecentProposals] = useState<any[]>([]);
-
-  // Activity Log
   const [activities, setActivities] = useState<any[]>([]);
-
   const [loading, setLoading] = useState(true);
 
-  // Phase C Modals
   const [isUpdateProgressOpen, setIsUpdateProgressOpen] = useState(false);
   const [isSubmitWorkOpen, setIsSubmitWorkOpen] = useState(false);
-  
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
   const [deliverableLink, setDeliverableLink] = useState("");
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useEffect(() => { fetchDashboardData(); }, []);
 
   const fetchDashboardData = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch Profile
-    const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    const { data: prof } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     if (prof) setProfile(prof);
 
-    // Fetch Proposals for stats & bid tracker
     const { data: allProposals } = await supabase
-      .from('proposals')
-      .select('*, job:jobs(*)')
-      .eq('freelancer_id', user.id)
-      .order('created_at', { ascending: false });
+      .from("proposals").select("*, job:jobs(*)").eq("freelancer_id", user.id).order("created_at", { ascending: false });
 
     if (allProposals) {
       setTotalBids(allProposals.length);
-      
-      const accepted = allProposals.filter(p => p.status === 'accepted');
+      const accepted = allProposals.filter(p => p.status === "accepted");
       setAcceptedBids(accepted.length);
-      
-      const inProg = allProposals.filter(p => p.work_status === 'in_progress');
+      const inProg = allProposals.filter(p => p.work_status === "in_progress");
       setInProgressBids(inProg.length);
-
-      const completed = allProposals.filter(p => p.work_status === 'completed');
-      const totalEarned = completed.reduce((sum, p) => sum + p.bid_amount, 0);
-      setEarned(totalEarned || accepted.reduce((sum, p) => sum + p.bid_amount, 0));
-
-      setRecentProposals(allProposals.slice(0, 3)); // top 3 for tracker
-
-      // Get latest active project for the left column
-      const latestActive = allProposals.find(p => p.status === 'accepted' && p.work_status !== 'completed');
+      const completed = allProposals.filter(p => p.work_status === "completed");
+      setEarned(completed.reduce((s, p) => s + p.bid_amount, 0) || accepted.reduce((s, p) => s + p.bid_amount, 0));
+      setRecentProposals(allProposals.slice(0, 3));
+      const latestActive = allProposals.find(p => p.status === "accepted" && p.work_status !== "completed");
       if (latestActive) {
         setActiveProject(latestActive);
-        // Fetch specific milestones for this proposal
-        const { data: mData } = await supabase.from('milestones').select('*').eq('proposal_id', latestActive.id).order('created_at', { ascending: true });
+        const { data: mData } = await supabase.from("milestones").select("*").eq("proposal_id", latestActive.id).order("created_at", { ascending: true });
         setMilestones(mData || []);
       }
     }
 
-    // Fetch Activity Log
-    const { data: actData } = await supabase.from('activity_logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(4);
+    const { data: actData } = await supabase.from("activity_logs").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5);
     if (actData) setActivities(actData);
-
     setLoading(false);
   };
 
   const calculateProgress = () => {
-    if (!milestones || milestones.length === 0) return 0;
-    const completed = milestones.filter(m => m.status === 'completed').length;
-    return Math.round((completed / milestones.length) * 100);
+    if (!milestones.length) return 0;
+    return Math.round((milestones.filter(m => m.status === "completed").length / milestones.length) * 100);
   };
 
   const handleAddMilestone = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeProject || !newMilestoneTitle) return;
-    
-    // Add to supabase
-    const { error } = await supabase.from('milestones').insert([{
-      proposal_id: activeProject.id,
-      title: newMilestoneTitle,
-      status: 'not_started' // 'not_started', 'in_progress', 'completed'
-    }]);
-
+    const { error } = await supabase.from("milestones").insert([{ proposal_id: activeProject.id, title: newMilestoneTitle, status: "not_started" }]);
     if (error) alert("Could not add milestone: " + error.message);
     else {
       setNewMilestoneTitle("");
-      // Refetch just milestones
-      const { data } = await supabase.from('milestones').select('*').eq('proposal_id', activeProject.id).order('created_at', { ascending: true });
-      if(data) setMilestones(data);
+      const { data } = await supabase.from("milestones").select("*").eq("proposal_id", activeProject.id).order("created_at", { ascending: true });
+      if (data) setMilestones(data);
     }
   };
 
   const handleToggleMilestone = async (id: string, currentStatus: string) => {
-    const nextStatus = currentStatus === 'not_started' ? 'in_progress' : currentStatus === 'in_progress' ? 'completed' : 'not_started';
-    
-    const { error } = await supabase.from('milestones').update({ status: nextStatus }).eq('id', id);
-    if (!error) {
-      setMilestones(milestones.map(m => m.id === id ? { ...m, status: nextStatus } : m));
-    }
+    const nextStatus = currentStatus === "not_started" ? "in_progress" : currentStatus === "in_progress" ? "completed" : "not_started";
+    const { error } = await supabase.from("milestones").update({ status: nextStatus }).eq("id", id);
+    if (!error) setMilestones(milestones.map(m => m.id === id ? { ...m, status: nextStatus } : m));
   };
 
   const handleSubmitWork = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeProject || !deliverableLink) return;
-    
     const { data: { user } } = await supabase.auth.getUser();
-
-    const { error } = await supabase
-      .from('proposals')
-      .update({ work_status: 'submitted' })
-      .eq('id', activeProject.id);
-
+    const { error } = await supabase.from("proposals").update({ work_status: "submitted" }).eq("id", activeProject.id);
     if (error) alert("Error submitting work: " + error.message);
     else {
-        if(user) {
-            await supabase.from('activity_logs').insert([{
-                user_id: user.id,
-                action_type: 'work_submitted',
-                description: `You submitted deliverables to ${activeProject.job?.title}`
-            }]);
-        }
-        alert("Work submitted successfully for client review!");
-        setIsSubmitWorkOpen(false);
-        setDeliverableLink("");
-        fetchDashboardData();
+      if (user) await supabase.from("activity_logs").insert([{ user_id: user.id, action_type: "work_submitted", description: `You submitted deliverables to ${activeProject.job?.title}` }]);
+      alert("Work submitted successfully!");
+      setIsSubmitWorkOpen(false);
+      setDeliverableLink("");
+      fetchDashboardData();
     }
   };
 
-  if (loading) return <div className="dashboard"><p style={{padding: '40px'}}>Loading layout...</p></div>;
+  if (loading) return <DashSkeleton />;
+
+  const progress = calculateProgress();
 
   return (
-    <div className="dashboard-grid-page">
-      <div className="dash-header-profile">
-        <h2>{profile?.full_name || 'Freelancer'}</h2>
+    <div className="dash-page">
+
+      {/* ── WELCOME BANNER ─────────────────────────────── */}
+      <div className="dash-welcome">
+        <div>
+          <p className="dash-welcome-eyebrow">Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"} 👋</p>
+          <h1 className="dash-welcome-name">{profile?.full_name || "Freelancer"}</h1>
+          <p className="dash-welcome-sub">Here's what's happening with your work today.</p>
+        </div>
+        <button className="dash-find-btn" onClick={() => navigate("/find-work")}>
+          Browse Jobs <IconArrowRight />
+        </button>
       </div>
 
-      <p className="section-label">OVERVIEW</p>
-      
-      <div className="overview-stats">
-        <div className="stat-card">
-          <span className="stat-label">Total bids</span>
-          <span className="stat-value">{totalBids}</span>
+      {/* ── OVERVIEW STAT CARDS ─────────────────────────── */}
+      <div className="dash-stats-grid">
+        <div className="dash-stat-card">
+          <div className="dash-stat-icon dash-stat-icon--gray">
+            <IconBriefcase />
+          </div>
+          <div className="dash-stat-body">
+            <span className="dash-stat-label">Total Bids</span>
+            <span className="dash-stat-value">{totalBids}</span>
+          </div>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Accepted</span>
-          <span className="stat-value text-green">{acceptedBids}</span>
+
+        <div className="dash-stat-card">
+          <div className="dash-stat-icon dash-stat-icon--green">
+            <IconCheckCircle />
+          </div>
+          <div className="dash-stat-body">
+            <span className="dash-stat-label">Accepted</span>
+            <span className="dash-stat-value dash-stat-value--green">{acceptedBids}</span>
+          </div>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">In progress</span>
-          <span className="stat-value text-blue">{inProgressBids}</span>
+
+        <div className="dash-stat-card">
+          <div className="dash-stat-icon dash-stat-icon--blue">
+            <IconActivity />
+          </div>
+          <div className="dash-stat-body">
+            <span className="dash-stat-label">In Progress</span>
+            <span className="dash-stat-value dash-stat-value--blue">{inProgressBids}</span>
+          </div>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Earned (₹)</span>
-          <span className="stat-value">{earned.toLocaleString()}</span>
+
+        <div className="dash-stat-card">
+          <div className="dash-stat-icon dash-stat-icon--purple">
+            <IconCoin />
+          </div>
+          <div className="dash-stat-body">
+            <span className="dash-stat-label">Earned</span>
+            <span className="dash-stat-value">₹{earned.toLocaleString()}</span>
+          </div>
         </div>
       </div>
 
-      <div className="dashboard-two-cols">
-        {/* LEFT COLUMN: ACTIVE PROJECT */}
-        <div className="dash-column">
-          <p className="section-label">ACTIVE PROJECT</p>
-          <div className="panel-card active-project-panel">
+      {/* ── TWO COLUMN ─────────────────────────────────── */}
+      <div className="dash-two-col">
+
+        {/* LEFT: ACTIVE PROJECT */}
+        <div className="dash-col">
+          <div className="dash-section-head">
+            <span className="dash-section-label">Active Project</span>
+          </div>
+
+          <div className="dash-card">
             {activeProject ? (
               <>
-                <div className="panel-header">
-                  <h3>{activeProject.job?.title || 'Unknown Project'}</h3>
-                  <span className="badge badge-active">{activeProject.work_status === 'submitted' ? 'Waiting Review' : 'Active'}</span>
+                <div className="dash-card-header">
+                  <h3 className="dash-card-title">{activeProject.job?.title || "Project"}</h3>
+                  <span className={`dash-badge dash-badge--${activeProject.work_status === "submitted" ? "purple" : "green"}`}>
+                    {activeProject.work_status === "submitted" ? "Awaiting Review" : "Active"}
+                  </span>
                 </div>
-                <p className="client-due">Due {activeProject.job?.deadline ? new Date(activeProject.job.deadline).toLocaleDateString() : 'Flexible'}</p>
-                
-                <div className="progress-section">
-                  <div className="progress-labels">
+
+                <p className="dash-card-meta">
+                  Due {activeProject.job?.deadline ? new Date(activeProject.job.deadline).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Flexible"}
+                </p>
+
+                {/* Progress */}
+                <div className="dash-progress-block">
+                  <div className="dash-progress-labels">
                     <span>Overall progress</span>
-                    <span>{calculateProgress()}%</span>
+                    <span className="dash-progress-pct">{progress}%</span>
                   </div>
-                  <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: `${calculateProgress()}%` }}></div>
+                  <div className="dash-progress-track">
+                    <div className="dash-progress-fill" style={{ width: `${progress}%` }} />
                   </div>
                 </div>
 
-                <div className="milestones-section">
-                  <p className="milestones-subtitle">Milestones</p>
-                  <ul className="milestone-list">
-                    {milestones.length > 0 ? milestones.map(m => (
-                      <li key={m.id}>
-                        <div className="milestone-item">
-                          <span className={`dot bg-${m.status === 'completed' ? 'green' : m.status === 'in_progress' ? 'blue' : 'gray'}`}></span>
-                          <span>{m.title}</span>
-                        </div>
-                        <span className={`ms-status text-${m.status === 'completed' ? 'green' : m.status === 'in_progress' ? 'blue' : 'gray'}`}>
-                          {m.status === 'completed' ? 'Done' : m.status === 'in_progress' ? 'In progress' : 'To do'}
-                        </span>
-                      </li>
-                    )) : (
-                      <li><span style={{ color: '#888', fontSize: '13px' }}>No milestones created yet.</span></li>
-                    )}
-                  </ul>
+                {/* Milestones */}
+                <div className="dash-milestones">
+                  <p className="dash-milestones-label">Milestones</p>
+                  {milestones.length > 0 ? (
+                    <ul className="dash-milestone-list">
+                      {milestones.map(m => (
+                        <li key={m.id} className="dash-milestone-item">
+                          <div className="dash-milestone-left">
+                            <IconDot color={STATUS_COLORS[m.status] || "#6b6b7a"} />
+                            <span className={m.status === "completed" ? "dash-milestone-done" : ""}>{m.title}</span>
+                          </div>
+                          <span className="dash-milestone-status" style={{ color: STATUS_COLORS[m.status] }}>
+                            {m.status === "completed" ? "Done" : m.status === "in_progress" ? "In progress" : "To do"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="dash-empty-sub">No milestones yet. Add your first one below.</p>
+                  )}
                 </div>
 
-                <div className="panel-actions">
-                  <button className="btn-outline" onClick={() => setIsUpdateProgressOpen(true)}>Update progress</button>
-                  <button className="btn-outline" onClick={() => setIsSubmitWorkOpen(true)}>Submit work ↗</button>
+                {/* Actions */}
+                <div className="dash-card-actions">
+                  <button className="dash-btn-outline" onClick={() => setIsUpdateProgressOpen(true)}>
+                    <IconPlus /> Update Progress
+                  </button>
+                  <button className="dash-btn-outline" onClick={() => setIsSubmitWorkOpen(true)}>
+                    <IconSend /> Submit Work
+                  </button>
                 </div>
               </>
             ) : (
-              <p style={{ color: '#888', padding: '20px 0' }}>No active projects at the moment.</p>
+              <div className="dash-empty-state">
+                <div className="dash-empty-icon">
+                  <IconLayersFolders />
+                </div>
+                <p className="dash-empty-title">No active projects</p>
+                <p className="dash-empty-sub">Once a client accepts your bid, your project will appear here.</p>
+                <button className="dash-btn-accent" onClick={() => navigate("/find-work")}>
+                  Find Work <IconArrowRight />
+                </button>
+              </div>
             )}
           </div>
         </div>
 
-        {/* RIGHT COLUMN: BID TRACKER */}
-        <div className="dash-column">
-          <p className="section-label">BID TRACKER</p>
-          <div className="bid-tracker-list">
-            {recentProposals.map(p => (
-              <div key={p.id} className="panel-card bid-card">
-                <div className="panel-header">
-                  <h3>{p.job?.title || 'Project'}</h3>
-                  <span className={`badge badge-${p.status}`}>{p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span>
-                </div>
-                <p className="bid-meta">Bid ₹{p.bid_amount} · Budget ₹{p.job?.budget || 0}</p>
-                
-                {p.status === 'pending' && <p className="bid-desc">Applied {new Date(p.created_at).toLocaleDateString()} · Waiting for response</p>}
-                {p.status === 'accepted' && <p className="bid-desc text-green">Client hired you!</p>}
-                
-                {p.status === 'rejected' && (
-                  <button className="btn-outline mt-12 w-full">Revise & rebid ↗</button>
-                )}
-              </div>
-            ))}
-            {recentProposals.length === 0 && <p style={{ color: '#888' }}>No recent bids.</p>}
+        {/* RIGHT: BID TRACKER */}
+        <div className="dash-col">
+          <div className="dash-section-head">
+            <span className="dash-section-label">Recent Bids</span>
+            <button className="dash-section-link" onClick={() => navigate("/proposals")}>View all</button>
           </div>
+
+          {recentProposals.length > 0 ? (
+            <div className="dash-bid-list">
+              {recentProposals.map(p => (
+                <div key={p.id} className="dash-card dash-bid-card">
+                  <div className="dash-card-header">
+                    <h4 className="dash-bid-title">{p.job?.title || "Project"}</h4>
+                    <span className={`dash-badge dash-badge--${p.status}`}>
+                      {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+                    </span>
+                  </div>
+                  <p className="dash-bid-meta">
+                    Your bid: <strong>₹{p.bid_amount?.toLocaleString()}</strong>
+                    <span className="dash-bid-sep">·</span>
+                    Budget: ₹{p.job?.budget?.toLocaleString() || "—"}
+                  </p>
+                  {p.status === "pending" && (
+                    <p className="dash-bid-sub">Applied {new Date(p.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })} · Waiting for response</p>
+                  )}
+                  {p.status === "accepted" && (
+                    <p className="dash-bid-sub dash-bid-sub--green">Client accepted your bid!</p>
+                  )}
+                  {p.status === "rejected" && (
+                    <button className="dash-btn-outline dash-btn-full">
+                      <IconRefreshCw /> Revise &amp; Rebid
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="dash-card">
+              <div className="dash-empty-state">
+                <div className="dash-empty-icon">
+                  <IconClipboard />
+                </div>
+                <p className="dash-empty-title">No bids placed yet</p>
+                <p className="dash-empty-sub">Find a project you like and place your first bid.</p>
+                <button className="dash-btn-accent" onClick={() => navigate("/find-work")}>
+                  Browse Jobs <IconArrowRight />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* RECENT ACTIVITY */}
-      <p className="section-label mt-40">RECENT ACTIVITY</p>
-      <div className="panel-card activity-panel">
-        <ul className="activity-list">
-          {activities.map((act, i) => {
-             let colorClass = 'gray'; // default
-             if (act.action_type.includes('accepted') || act.action_type.includes('submitted')) colorClass = 'green';
-             else if (act.action_type.includes('progress') || act.action_type.includes('updated')) colorClass = 'blue';
-             else if (act.action_type.includes('bid') && !act.action_type.includes('rejected')) colorClass = 'orange'; // for placed bids
-             else if (act.action_type.includes('reject')) colorClass = 'red';
-
-             return (
-               <li key={act.id || i}>
-                 <div className="activity-item">
-                   <span className={`dot bg-${colorClass}`}></span>
-                   <span>{act.description}</span>
-                 </div>
-                 <span className="activity-time">{timeAgo(act.created_at)}</span>
-               </li>
-             );
-          })}
-          {activities.length === 0 && <li style={{color: '#888'}}>No recent activity.</li>}
-        </ul>
+      {/* ── RECENT ACTIVITY ────────────────────────────── */}
+      <div className="dash-section-head dash-section-head--spaced">
+        <span className="dash-section-label">Recent Activity</span>
       </div>
 
-      {/* MODALS */}
+      <div className="dash-card dash-activity-card">
+        {activities.length > 0 ? (
+          <ul className="dash-activity-list">
+            {activities.map((act, i) => {
+              let dotColor = "#6b6b7a";
+              if (act.action_type.includes("accepted") || act.action_type.includes("submitted")) dotColor = "#4ade80";
+              else if (act.action_type.includes("progress") || act.action_type.includes("updated")) dotColor = "#60a5fa";
+              else if (act.action_type.includes("bid") && !act.action_type.includes("rejected")) dotColor = "#f59e0b";
+              else if (act.action_type.includes("reject")) dotColor = "#ef4444";
+
+              return (
+                <li key={act.id || i} className="dash-activity-item">
+                  <div className="dash-activity-left">
+                    <IconDot color={dotColor} />
+                    <span className="dash-activity-text">{act.description}</span>
+                  </div>
+                  <span className="dash-activity-time">{timeAgo(act.created_at)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="dash-empty-state">
+            <div className="dash-empty-icon">
+              <IconBellOff />
+            </div>
+            <p className="dash-empty-title">No activity yet</p>
+            <p className="dash-empty-sub">Your recent actions — bids, updates, submissions — will appear here.</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── MODALS ─────────────────────────────────────── */}
       {isUpdateProgressOpen && (
         <div className="modal-overlay" onClick={() => setIsUpdateProgressOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{maxWidth: '400px'}}>
-             <button className="close-btn" onClick={() => setIsUpdateProgressOpen(false)}>×</button>
-             <h2 style={{fontSize:'20px', marginBottom: '20px'}}>Update Milestones</h2>
-             
-             <ul className="milestone-list" style={{marginBottom: '20px'}}>
-                {milestones.map(m => (
-                  <li key={m.id} style={{padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', cursor: 'pointer'}} onClick={() => handleToggleMilestone(m.id, m.status)}>
-                    <div className="milestone-item">
-                      <span className={`dot bg-${m.status === 'completed' ? 'green' : m.status === 'in_progress' ? 'blue' : 'gray'}`}></span>
-                      <span style={{textDecoration: m.status === 'completed' ? 'line-through' : 'none', color: m.status === 'completed' ? '#888' : '#fff'}}>{m.title}</span>
-                    </div>
-                    <span className="ms-status" style={{fontSize: '11px', color: '#aaa'}}>(Click to shift state)</span>
-                  </li>
-                ))}
-             </ul>
+          <div className="modal-content dash-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setIsUpdateProgressOpen(false)}>×</button>
+            <h2 className="dash-modal-title">Update Milestones</h2>
+            <p className="dash-modal-sub">Click a milestone to cycle through its status.</p>
 
-             <form onSubmit={handleAddMilestone} style={{display: 'flex', gap: '10px'}}>
-               <input 
-                 type="text" 
-                 value={newMilestoneTitle} 
-                 onChange={e => setNewMilestoneTitle(e.target.value)} 
-                 placeholder="e.g. Wireframes..." 
-                 className="filter-input" 
-                 style={{flex: 1}} 
-                 required 
-               />
-               <button type="submit" className="submit-bid-btn" style={{width: 'auto', padding: '10px 16px'}}>+ Add</button>
-             </form>
+            <ul className="dash-milestone-list" style={{ marginBottom: "20px" }}>
+              {milestones.map(m => (
+                <li key={m.id} className="dash-milestone-item dash-milestone-clickable" onClick={() => handleToggleMilestone(m.id, m.status)}>
+                  <div className="dash-milestone-left">
+                    <IconDot color={STATUS_COLORS[m.status] || "#6b6b7a"} />
+                    <span className={m.status === "completed" ? "dash-milestone-done" : ""}>{m.title}</span>
+                  </div>
+                  <span className="dash-milestone-status" style={{ color: STATUS_COLORS[m.status] }}>
+                    {m.status === "completed" ? "Done" : m.status === "in_progress" ? "In progress" : "To do"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <form onSubmit={handleAddMilestone} className="dash-modal-form">
+              <input
+                type="text"
+                value={newMilestoneTitle}
+                onChange={e => setNewMilestoneTitle(e.target.value)}
+                placeholder="New milestone title…"
+                className="dash-modal-input"
+                required
+              />
+              <button type="submit" className="dash-btn-accent-sm">
+                <IconPlus /> Add
+              </button>
+            </form>
           </div>
         </div>
       )}
 
       {isSubmitWorkOpen && (
         <div className="modal-overlay" onClick={() => setIsSubmitWorkOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{maxWidth: '400px'}}>
-             <button className="close-btn" onClick={() => setIsSubmitWorkOpen(false)}>×</button>
-             <h2 style={{fontSize:'20px', marginBottom: '20px'}}>Submit Deliverables</h2>
-             <p style={{color:'#aaa', fontSize:'14px', marginBottom:'20px'}}>Hand off your final work files to the client. This will mark the project as 'Waiting Review'.</p>
-             <form onSubmit={handleSubmitWork} className="bid-form">
-               <div className="form-group">
-                 <label>Figma / GitHub / Drive Link</label>
-                 <input type="url" required placeholder="https://..." value={deliverableLink} onChange={e => setDeliverableLink(e.target.value)} />
-               </div>
-               <button type="submit" className="submit-bid-btn">Submit Work</button>
-             </form>
+          <div className="modal-content dash-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-btn" onClick={() => setIsSubmitWorkOpen(false)}>×</button>
+            <h2 className="dash-modal-title">Submit Deliverables</h2>
+            <p className="dash-modal-sub">Share a link to your final files. This marks the project as "Awaiting Review."</p>
+
+            <form onSubmit={handleSubmitWork} className="bid-form">
+              <div className="form-group">
+                <label>Figma / GitHub / Drive Link</label>
+                <input type="url" required placeholder="https://…" value={deliverableLink} onChange={e => setDeliverableLink(e.target.value)} />
+              </div>
+              <button type="submit" className="submit-bid-btn">
+                <IconSend /> Submit Work
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -15,6 +15,7 @@ export default function Messages() {
     
     const activeContactRef = useRef<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const channelRef = useRef<any>(null);
 
     useEffect(() => {
         activeContactRef.current = activeContact;
@@ -22,7 +23,20 @@ export default function Messages() {
 
     useEffect(() => {
         initChat();
+
+        return () => {
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
+                channelRef.current = null;
+            }
+        };
     }, []);
+
+    useEffect(() => {
+        if (messages.length > 0) {
+            scrollToBottom();
+        }
+    }, [messages]);
 
     const initChat = async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -46,7 +60,12 @@ export default function Messages() {
         }
 
         // Subscribe to real-time messages
-        supabase.channel('public:messages')
+        if (channelRef.current) {
+            supabase.removeChannel(channelRef.current);
+            channelRef.current = null;
+        }
+
+        channelRef.current = supabase.channel(`public:messages:${user.id}`)
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
               const newMsg = payload.new;
               const currentActive = activeContactRef.current;
@@ -55,8 +74,27 @@ export default function Messages() {
                   (newMsg.sender_id === user.id && newMsg.receiver_id === currentActive.id) ||
                   (newMsg.receiver_id === user.id && newMsg.sender_id === currentActive.id)
               )) {
-                  setMessages(prev => [...prev, newMsg]);
-                  scrollToBottom();
+                  setMessages(prev => {
+                      if (prev.some(m => m.id === newMsg.id)) {
+                          return prev;
+                      }
+
+                      const optimisticIdx = prev.findIndex(
+                          m =>
+                              String(m.id).startsWith('temp-') &&
+                              m.sender_id === newMsg.sender_id &&
+                              m.receiver_id === newMsg.receiver_id &&
+                              m.content === newMsg.content
+                      );
+
+                      if (optimisticIdx >= 0) {
+                          const next = [...prev];
+                          next[optimisticIdx] = newMsg;
+                          return next;
+                      }
+
+                      return [...prev, newMsg];
+                  });
               }
           }).subscribe();
     };
@@ -70,7 +108,6 @@ export default function Messages() {
             
         if (data) {
             setMessages(data);
-            scrollToBottom();
         }
     };
 
@@ -86,17 +123,44 @@ export default function Messages() {
         const msgText = newMessage.trim();
         setNewMessage("");
 
-        const { error } = await supabase.from('messages').insert([{
+        const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const optimisticMessage = {
+            id: tempId,
+            sender_id: currentUser.id,
+            receiver_id: activeContact.id,
+            content: msgText,
+            created_at: new Date().toISOString()
+        };
+
+        setMessages(prev => [...prev, optimisticMessage]);
+
+        const { data, error } = await supabase.from('messages').insert([{
             sender_id: currentUser.id,
             receiver_id: activeContact.id,
             content: msgText
-        }]);
+        }]).select('*').single();
         
-        if(error) alert("Error sending message: " + error.message);
+        if (error) {
+            setMessages(prev => prev.filter(m => m.id !== tempId));
+            alert("Error sending message: " + error.message);
+            return;
+        }
+
+        if (data) {
+            setMessages(prev => {
+                const replaced = prev.map(m => (m.id === tempId ? data : m));
+                if (replaced.some(m => m.id === data.id)) {
+                    return replaced;
+                }
+                return [...replaced, data];
+            });
+        }
     };
 
     const scrollToBottom = () => {
-        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+        requestAnimationFrame(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        });
     };
 
     return (
