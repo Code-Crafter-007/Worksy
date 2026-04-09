@@ -71,6 +71,12 @@ export default function MyProposals(): JSX.Element {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'proposals' }, () => {
                 fetchProposals(user.id, true);
             })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'escrow_payments' }, () => {
+                fetchProposals(user.id, true);
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => {
+                fetchProposals(user.id, true);
+            })
             .subscribe();
 
         // Fallback refresh in case Realtime for proposals is not configured.
@@ -175,9 +181,7 @@ export default function MyProposals(): JSX.Element {
                 delivered_work_url: workUrl,
                 delivered_work_notes: workNotes
             })
-            .eq('id', submitTarget.id)
-            .select()
-            .single();
+            .eq('id', submitTarget.id);
 
         if (error) {
             alert("Database Error submitting work: " + error.message);

@@ -96,6 +96,9 @@ export default function ClientAcceptedProjects() {
             .on("postgres_changes", { event: "*", schema: "public", table: "milestones" }, () => {
                 fetchAcceptedProjects(user.id);
             })
+            .on("postgres_changes", { event: "*", schema: "public", table: "escrow_payments" }, () => {
+                fetchAcceptedProjects(user.id);
+            })
             .subscribe();
 
         setLoading(false);
