@@ -23,10 +23,15 @@ interface AcceptedProjectRow {
     deadline: string | null;
     jobStatus: JobStatus;
     workStatus: WorkStatus;
+    freelancerId: string;
     freelancerName: string;
     freelancerHeadline: string | null;
     milestones: MilestoneItem[];
     progress: number;
+    deliveredWorkUrl: string | null;
+    deliveredWorkNotes: string | null;
+    escrowStatus: 'pending' | 'held' | 'released' | 'refunded' | 'none';
+    escrowId: string | null;
 }
 
 function getProgressFromStatus(status: WorkStatus, jobStatus: JobStatus): number {
@@ -101,9 +106,12 @@ export default function ClientAcceptedProjects() {
             .from("proposals")
             .select(`
                 id,
+                freelancer_id,
                 bid_amount,
                 status,
                 work_status,
+                delivered_work_url,
+                delivered_work_notes,
                 created_at,
                 job:jobs!job_id(id, title, budget, deadline, status, client_id),
                 freelancer:profiles!freelancer_id(full_name, headline)
@@ -118,12 +126,18 @@ export default function ClientAcceptedProjects() {
         }
 
         const proposalIds = acceptedRows.map((row: any) => row.id as string);
+        const jobIds = acceptedRows.map((row: any) => row.job.id as string);
 
         const { data: milestoneRows } = await supabase
             .from("milestones")
             .select("id, proposal_id, title, status")
             .in("proposal_id", proposalIds)
             .order("created_at", { ascending: true });
+
+        const { data: escrowRows } = await supabase
+            .from("escrow_payments")
+            .select("id, project_id, freelancer_id, status")
+            .in("project_id", jobIds);
 
         const milestoneMap: Record<string, MilestoneItem[]> = {};
         (milestoneRows || []).forEach((milestone: any) => {
@@ -148,6 +162,8 @@ export default function ClientAcceptedProjects() {
                     ? Math.round((completedCount / projectMilestones.length) * 100)
                     : getProgressFromStatus(row.work_status ?? null, row.job.status);
 
+                const escrow = escrowRows?.find((e: any) => e.project_id === row.job.id && e.freelancer_id === row.freelancer_id);
+
                 return {
                     proposalId: row.id,
                     jobId: row.job.id,
@@ -158,14 +174,103 @@ export default function ClientAcceptedProjects() {
                     deadline: row.job.deadline,
                     jobStatus: row.job.status,
                     workStatus: row.work_status ?? null,
+                    freelancerId: row.freelancer_id,
                     freelancerName: row.freelancer?.full_name || "Freelancer",
                     freelancerHeadline: row.freelancer?.headline || null,
                     milestones: projectMilestones,
                     progress,
+                    deliveredWorkUrl: row.delivered_work_url || null,
+                    deliveredWorkNotes: row.delivered_work_notes || null,
+                    escrowStatus: escrow ? escrow.status : 'none',
+                    escrowId: escrow ? escrow.id : null
                 };
             });
 
         setProjects(normalized);
+    };
+
+    const handleFundEscrow = async (project: AcceptedProjectRow) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        // Ensure Razorpay SDK is loaded
+        const res = await new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+
+        if (!res) {
+            alert('Razorpay SDK failed to load. Are you online?');
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase.functions.invoke('create-escrow-order', {
+                body: {
+                    projectId: project.jobId,
+                    clientId: user.id,
+                    freelancerId: project.freelancerId,
+                    amount: project.bidAmount
+                }
+            });
+
+            if (error) throw new Error(error.message || JSON.stringify(error));
+
+            const { order, escrow } = data;
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_mockkey',
+                amount: order.amount,
+                currency: order.currency,
+                name: 'Worksy Escrow Secure',
+                description: `Fund Escrow for ${project.title}`,
+                order_id: order.id,
+                handler: async function (response: any) {
+                    const { error: confirmError } = await supabase.functions.invoke('confirm-escrow-payment', {
+                        body: {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            escrow_id: escrow.id
+                        }
+                    });
+
+                    if (confirmError) alert('Payment recorded, but failed to confirm escrow status.');
+                    else alert('Escrow funded successfully! Funds are held until work is approved.');
+                    
+                    fetchAcceptedProjects(user.id);
+                },
+                theme: { color: '#8A2BE2' }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on('payment.failed', function (response: any){
+                    alert(response.error.description);
+            });
+            rzp.open();
+        } catch (err: any) {
+            alert('Error funding escrow: ' + err.message);
+        }
+    };
+
+    const handleReleaseEscrow = async (project: AcceptedProjectRow) => {
+        if (!project.escrowId) return;
+        const confirmRelease = window.confirm("Are you sure you want to release the funds to the freelancer? This assumes you have approved their work.");
+        if (!confirmRelease) return;
+        
+        try {
+            const { error } = await supabase.functions.invoke('release-escrow', {
+                body: { escrow_id: project.escrowId }
+            });
+            if (error) throw new Error(error.message || JSON.stringify(error));
+            alert("Funds successfully released! The project is now complete.");
+            initPage();
+        } catch (err: any) {
+            alert("Failed to release escrow: " + err.message);
+        }
     };
 
     if (loading) {
@@ -201,9 +306,25 @@ export default function ClientAcceptedProjects() {
                                             <p className="text-gray accepted-headline">{project.freelancerHeadline}</p>
                                         )}
                                     </div>
-                                    <span className={`badge ${project.progress >= 100 ? "badge-accepted" : "badge-pending"}`}>
-                                        {statusLabel}
-                                    </span>
+                                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px'}}>
+                                        <span className={`badge ${project.progress >= 100 ? "badge-accepted" : "badge-pending"}`}>
+                                            {statusLabel}
+                                        </span>
+                                        {(project.escrowStatus === 'none' || project.escrowStatus === 'pending') && (
+                                            <button onClick={() => handleFundEscrow(project)} className="btn-primary-purple" style={{padding: '6px 12px', fontSize: '12px'}}>
+                                                {project.escrowStatus === 'pending' ? 'Retry Fund Escrow' : 'Fund Escrow'}
+                                            </button>
+                                        )}
+                                        {project.escrowStatus === 'held' && project.workStatus !== 'submitted' && (
+                                            <span className="badge" style={{background: '#e0f7fa', color: '#006064'}}>Awaiting Work Submission</span>
+                                        )}
+                                        {project.escrowStatus === 'held' && project.workStatus === 'submitted' && (
+                                            <button onClick={() => handleReleaseEscrow(project)} className="btn-primary-purple" style={{padding: '6px 12px', fontSize: '12px', background: '#4CAF50'}}>Approve & Release Payment</button>
+                                        )}
+                                        {project.escrowStatus === 'released' && (
+                                            <span className="badge" style={{background: '#c8e6c9', color: '#1b5e20'}}>Payment Released ✓</span>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="accepted-meta-row">
@@ -245,7 +366,21 @@ export default function ClientAcceptedProjects() {
                                     )}
                                 </div>
 
-                                <p className="accepted-at text-gray">Accepted on {new Date(project.acceptedAt).toLocaleDateString()}</p>
+                                {project.workStatus === 'submitted' && project.escrowStatus === 'held' && (
+                                    <div style={{ marginTop: '20px', padding: '16px', background: '#f5f5ff', borderRadius: '8px', border: '1px solid #d0c4f5' }}>
+                                        <p style={{ fontWeight: 'bold', marginBottom: '8px', color: '#4a148c' }}>📦 Freelancer's Final Deliverables</p>
+                                        {project.deliveredWorkNotes && (
+                                            <div style={{ marginBottom: '12px', color: '#555', fontSize: '14px', fontStyle: 'italic', background: 'white', padding: '10px', borderRadius: '6px' }}>
+                                                "{project.deliveredWorkNotes}"
+                                            </div>
+                                        )}
+                                        {project.deliveredWorkUrl && (
+                                            <a href={project.deliveredWorkUrl} target="_blank" rel="noreferrer" className="btn-outline-blue" style={{ display: 'inline-block', fontSize: '13px', textDecoration: 'none' }}>
+                                                View Attached Work Link ↗
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
                             </article>
                         );
                     })}
