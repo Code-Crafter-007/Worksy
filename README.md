@@ -37,7 +37,7 @@ Worksy is a modern, full-stack freelance marketplace built to effortlessly conne
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/yourusername/worksy.git
+git clone https://github.com/code-crafter-007/worksy.git
 cd worksy
 ```
 
